@@ -6,5 +6,8 @@
     <string name="Disconnected">Disconnected</string>
     <string name="Down">Down</string>
     <string name="up">Up</string>
+    <string name="left_motor">Left Motor</string>
+    <string name="right_motor">Right Motor</string>
+    <string name="horn">Horn</string>
 
 </resources>

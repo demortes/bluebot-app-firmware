@@ -15,21 +15,67 @@
         android:text="@string/Disconnected" />
 
     <Button
-        android:id="@+id/DwnBtn"
+        android:id="@+id/LeftDownBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/RightUpBtn"
         android:text="@string/Down" />
 
     <Button
-        android:id="@+id/UpBtn"
+        android:id="@+id/RightUpBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/DwnBtn"
-        android:layout_alignLeft="@+id/DwnBtn"
-        android:layout_alignRight="@+id/DwnBtn"
-        android:layout_marginBottom="51dp"
+        android:layout_above="@+id/RightDwnBtn"
+        android:layout_alignParentRight="true"
+        android:layout_marginBottom="52dp"
+        android:layout_marginRight="42dp"
         android:text="@string/up" />
+
+    <Button
+        android:id="@+id/RightDwnBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/RightUpBtn"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="48dp"
+        android:text="@string/Down" />
+
+    <Button
+        android:id="@+id/LeftUpBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/RightUpBtn"
+        android:layout_alignBottom="@+id/RightUpBtn"
+        android:layout_alignLeft="@+id/LeftDownBtn"
+        android:layout_alignRight="@+id/LeftDownBtn"
+        android:text="@string/up" />
+
+    <TextView
+        android:id="@+id/textLeftMotor"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/LeftUpBtn"
+        android:layout_alignLeft="@+id/LeftUpBtn"
+        android:layout_marginBottom="14dp"
+        android:text="@string/left_motor" />
+
+    <TextView
+        android:id="@+id/textRightMotor"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/textLeftMotor"
+        android:layout_alignBottom="@+id/textLeftMotor"
+        android:layout_alignLeft="@+id/RightUpBtn"
+        android:text="@string/right_motor" />
+
+    <Button
+        android:id="@+id/hornBtn"
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/RightDwnBtn"
+        android:layout_marginLeft="18dp"
+        android:layout_toRightOf="@+id/ConnectionStatus"
+        android:text="@string/horn" />
 
 </RelativeLayout>

@@ -18,22 +18,29 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity {
 	
-	private Button dwnBtn;
-	private Button upBtn;
+	private Button LeftDwnBtn;
+	private Button LeftUpBtn;
 	private TextView cStatus;
 	private BluetoothAdapter mAdapter;
 	private BluetoothSocket mSocket;
 	private BluetoothDevice mDevice;
 	private OutputStream outStream;
 	private String macAddr = "20:13:01:22:12:07";
+	private Button RightUpBtn;
+	private Button RightDwnBtn;
+	private Button hornBtn;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		
-		dwnBtn = (Button) findViewById(R.id.DwnBtn);
-		upBtn = (Button) findViewById(R.id.UpBtn);
+		LeftDwnBtn = (Button) findViewById(R.id.LeftDownBtn);
+		LeftUpBtn = (Button) findViewById(R.id.LeftUpBtn);
+		RightUpBtn = (Button) findViewById(R.id.RightUpBtn);
+		RightDwnBtn = (Button) findViewById(R.id.RightDwnBtn);
+		hornBtn = (Button) findViewById(R.id.hornBtn);
+		
 		cStatus = (TextView) findViewById(R.id.ConnectionStatus);
 		mAdapter = BluetoothAdapter.getDefaultAdapter();
 		if(mAdapter == null)
@@ -46,21 +53,34 @@ public class MainActivity extends Activity {
 		    startActivityForResult(enableBtIntent, 1);
 		}
 		
-		dwnBtn.setOnClickListener(
+		LeftDwnBtn.setOnClickListener(
 				new View.OnClickListener(){
 					public void onClick(View tmp)				
 					{
 						try {
 							outStream.write('D');
 						} catch (IOException e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
 					}
 				}
 		);
 		
-		upBtn.setOnClickListener(
+		hornBtn.setOnClickListener(
+				new View.OnClickListener() {
+					
+					@Override
+					public void onClick(View v) {
+						try {
+							outStream.write('H');
+						} catch (IOException e)	{
+							e.printStackTrace();
+						}
+						
+					}
+				});
+		
+		LeftUpBtn.setOnClickListener(
 				new View.OnClickListener()
 				{
 					public void onClick(View tmp)
@@ -72,6 +92,32 @@ public class MainActivity extends Activity {
 						}
 					}
 				});
+		
+		RightUpBtn.setOnClickListener(
+				new View.OnClickListener()
+				{
+					public void onClick(View tmp)
+					{
+						try {
+							outStream.write('I');
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
+				});
+		
+		RightDwnBtn.setOnClickListener(
+				new View.OnClickListener(){
+					public void onClick(View tmp)				
+					{
+						try {
+							outStream.write('F');
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
+				}
+		);
 	}
 	
 	protected void onResume()
