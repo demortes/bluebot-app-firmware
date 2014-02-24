@@ -1,9 +1,8 @@
-package edu.pki.CEEN.test.bluechar;
+package edu.pki.CEEN.lab.bluebot;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.UUID;
-
 import android.os.Bundle;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -17,6 +16,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+import edu.pki.CEEN.lab.bluebot.R;
 
 public class MainActivity extends Activity {
 
@@ -33,6 +33,8 @@ public class MainActivity extends Activity {
 	private Button RightDwnBtn;
 	private Button hornBtn;
 	private byte dataSet[];
+	private Thread btControl;
+	private boolean killBtControl = false;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -128,11 +130,17 @@ public class MainActivity extends Activity {
 				return false;
 			}
 		});
+		//Set buttons clickable, not done when onTouchListener is used.
+		RightDwnBtn.setClickable(true);
+		LeftDwnBtn.setClickable(true);
+		RightUpBtn.setClickable(true);
+		LeftUpBtn.setClickable(true);
+		hornBtn.setClickable(true);
 	}
 
 	protected void onResume() {
 		super.onResume();
-		Runnable btControl;
+		Runnable btControlRunnable;
 		mDevice = mAdapter.getRemoteDevice(macAddr);
 		mAdapter.cancelDiscovery();
 		try {
@@ -147,34 +155,42 @@ public class MainActivity extends Activity {
 			outStream = mSocket.getOutputStream();
 			cStatus.setText("Connected");
 		} catch (Exception e) {
-			e.printStackTrace();
+			//Do nothing, just assume the bot isn't available at this time.
 		}
 		
-		btControl = new Runnable(){
+		btControlRunnable = new Runnable(){
 			@Override
 			public void run()
 			{
 				byte prevData[] = new byte[5];
 				while(true)
 				{
-					if(prevData != dataSet)
+					if(killBtControl == false)
 					{
-						try {
-							outStream.write(dataSet);
-							Thread.sleep(10);
-						} catch (IOException e) {
-							Log.d(TAG, "ERROR within BTControl Thread.");
-							Log.d(TAG, "Exception: " + e.toString());
-						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
-							Log.d(TAG, "BT Sleep interrupted, ignoring.");
+						if(prevData != dataSet)
+						{
+							try {
+								if(outStream != null)
+									outStream.write(dataSet);
+								Thread.sleep(10);
+							} catch (IOException e) {
+								Log.d(TAG, "ERROR within BTControl Thread.");
+								Log.d(TAG, "Exception: " + e.toString());
+							} catch (InterruptedException e) {
+								// TODO Auto-generated catch block
+								Log.d(TAG, "BT Sleep interrupted, ignoring.");
+							}
+							prevData = dataSet;
 						}
-						prevData = dataSet;
+					} else {
+						Log.i(TAG, "Killing BTControl Thread.");
+						return;			//Kills the thread...
 					}
 				}
 			}
 		};
-		new Thread(btControl).start();
+		btControl = new Thread(btControlRunnable);
+		btControl.start();
 	}
 
 	protected void onPause() {
@@ -186,6 +202,9 @@ public class MainActivity extends Activity {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+			
+			if(btControl.isAlive())
+				killBtControl = true;
 		}
 	}
 
