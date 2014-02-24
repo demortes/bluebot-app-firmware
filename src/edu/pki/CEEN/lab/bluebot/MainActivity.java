@@ -3,6 +3,7 @@ package edu.pki.CEEN.lab.bluebot;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.UUID;
+
 import android.os.Bundle;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -20,7 +21,7 @@ import edu.pki.CEEN.lab.bluebot.R;
 
 public class MainActivity extends Activity {
 
-	protected static final String TAG = "BluMote";
+	protected static final String TAG = "BluBoT";
 	private Button LeftDwnBtn;
 	private Button LeftUpBtn;
 	private TextView cStatus;
@@ -40,6 +41,8 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		
+		Runnable btControlRunnable;
 
 		dataSet = new byte[5];
 
@@ -66,10 +69,8 @@ public class MainActivity extends Activity {
 			public boolean onTouch(View v, MotionEvent event) {
 				if (event.getAction() == MotionEvent.ACTION_DOWN) {
 					dataSet[3] = (byte) 0xFF;
-					return true;
 				} else if (event.getAction() == MotionEvent.ACTION_UP) {
 					dataSet[3] = 0x00;
-					return true;
 				}
 				return false;
 			}
@@ -80,10 +81,8 @@ public class MainActivity extends Activity {
 			public boolean onTouch(View v, MotionEvent event) {
 				if (event.getAction() == MotionEvent.ACTION_DOWN) {
 					dataSet[0] |= (byte) 0x01;
-					return true;
 				} else if (event.getAction() == MotionEvent.ACTION_UP) {
 					dataSet[0] &= ~(0x01);
-					return true;
 				}
 				return false;
 			}
@@ -94,10 +93,8 @@ public class MainActivity extends Activity {
 			public boolean onTouch(View v, MotionEvent event) {
 				if (event.getAction() == MotionEvent.ACTION_DOWN) {
 					dataSet[3] = (byte) 0x7F;
-					return true;
 				} else if (event.getAction() == MotionEvent.ACTION_UP) {
 					dataSet[3] = 0x00;
-					return true;
 				}
 				return false;
 			}
@@ -108,10 +105,8 @@ public class MainActivity extends Activity {
 			public boolean onTouch(View v, MotionEvent event) {
 				if (event.getAction() == MotionEvent.ACTION_DOWN) {
 					dataSet[1] = (byte) 0x7F;
-					return true;
 				} else if (event.getAction() == MotionEvent.ACTION_UP) {
 					dataSet[1] = 0x00;
-					return true;
 				}
 				return false;
 			}
@@ -122,14 +117,64 @@ public class MainActivity extends Activity {
 			public boolean onTouch(View v, MotionEvent event) {
 				if (event.getAction() == MotionEvent.ACTION_DOWN) {
 					dataSet[1] = (byte) 0xFF;
-					return true;
 				} else if (event.getAction() == MotionEvent.ACTION_UP) {
 					dataSet[1] = 0x00;
-					return true;
 				}
 				return false;
 			}
 		});
+		
+		// Populate Runnable for thread creation.
+		btControlRunnable = new Runnable(){
+			@Override
+			public void run()
+			{
+				boolean newData = false;
+				byte prevData[] = new byte[5];
+				while(true)
+				{
+					if(killBtControl == false)
+					{
+						for(int i = 0;i < dataSet.length;i++)
+							if(dataSet[i] != prevData[i])
+								newData = true;
+						if(newData)
+						{
+							Log.d(TAG, "New data... trying to transmit.");
+							try {
+								if(outStream != null)
+								{
+									outStream.write(dataSet);
+								}
+								Thread.sleep(10);
+							} catch (IOException e) {
+								Log.d(TAG, "ERROR within BTControl Thread.");
+								Log.d(TAG, "Exception: " + e.toString());
+							} catch (InterruptedException e) {
+								// TODO Auto-generated catch block
+								Log.d(TAG, "BT Sleep interrupted, ignoring.");
+							} catch (Exception e)
+							{
+								Log.e(TAG, "Generic exception caught...");
+								e.printStackTrace();
+							}
+							for(int i = 0;i<dataSet.length;i++)
+								prevData[i] = dataSet[i];
+							newData = false;
+						}
+					} else {
+						Log.i(TAG, "Killing BTControl Thread.");
+						return;			//Kills the thread...
+					}
+				}
+			}
+		};
+		
+		//Create thread, but do not start it here. 
+		//Will prevent multiple threads from being 
+		//created and wasted resources.
+		btControl = new Thread(btControlRunnable ,"BTControl");
+		
 		//Set buttons clickable, not done when onTouchListener is used.
 		RightDwnBtn.setClickable(true);
 		LeftDwnBtn.setClickable(true);
@@ -140,7 +185,6 @@ public class MainActivity extends Activity {
 
 	protected void onResume() {
 		super.onResume();
-		Runnable btControlRunnable;
 		mDevice = mAdapter.getRemoteDevice(macAddr);
 		mAdapter.cancelDiscovery();
 		try {
@@ -157,40 +201,10 @@ public class MainActivity extends Activity {
 		} catch (Exception e) {
 			//Do nothing, just assume the bot isn't available at this time.
 		}
-		
-		btControlRunnable = new Runnable(){
-			@Override
-			public void run()
-			{
-				byte prevData[] = new byte[5];
-				while(true)
-				{
-					if(killBtControl == false)
-					{
-						if(prevData != dataSet)
-						{
-							try {
-								if(outStream != null)
-									outStream.write(dataSet);
-								Thread.sleep(10);
-							} catch (IOException e) {
-								Log.d(TAG, "ERROR within BTControl Thread.");
-								Log.d(TAG, "Exception: " + e.toString());
-							} catch (InterruptedException e) {
-								// TODO Auto-generated catch block
-								Log.d(TAG, "BT Sleep interrupted, ignoring.");
-							}
-							prevData = dataSet;
-						}
-					} else {
-						Log.i(TAG, "Killing BTControl Thread.");
-						return;			//Kills the thread...
-					}
-				}
-			}
-		};
-		btControl = new Thread(btControlRunnable);
-		btControl.start();
+		//Start previously created thread.
+		try{
+			btControl.start();
+		} catch (Exception e) {}
 	}
 
 	protected void onPause() {
@@ -203,8 +217,8 @@ public class MainActivity extends Activity {
 				e.printStackTrace();
 			}
 			
-			if(btControl.isAlive())
-				killBtControl = true;
+			//	Stop the thread from wasting battery and keeping resources we don't need.
+			killBtControl = true;
 		}
 	}
 
