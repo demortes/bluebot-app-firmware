@@ -1,6 +1,7 @@
 package edu.pki.CEEN.lab.bluebot;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.UUID;
 
@@ -22,6 +23,7 @@ import edu.pki.CEEN.lab.bluebot.R;
 public class MainActivity extends Activity {
 
 	protected static final String TAG = "BluBoT";
+	protected static final boolean DEBUG = true;
 	private Button LeftDwnBtn;
 	private Button LeftUpBtn;
 	private TextView cStatus;
@@ -36,6 +38,7 @@ public class MainActivity extends Activity {
 	private byte dataSet[];
 	private Thread btControl;
 	private boolean killBtControl = false;
+	private InputStream inStream;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -85,6 +88,7 @@ public class MainActivity extends Activity {
 				} else if (event.getAction() == MotionEvent.ACTION_UP) {
 					dataSet[1] &= ~(0x01);
 				}
+				if(DEBUG) Log.d(TAG, String.format("Button Byte: 0x%02x", dataSet[1]));
 				return false;
 			}
 		});
@@ -131,39 +135,50 @@ public class MainActivity extends Activity {
 			public void run() {
 				boolean newData = false; // Assume first run it's true.
 				byte prevData[] = new byte[6];
+				byte pendingData[] = new byte[6];
 				while (true) {
 					if (killBtControl == false) {
 						for (int i = 0; i < dataSet.length; i++)
 							if (dataSet[i] != prevData[i])
 								newData = true;
+						if(newData)
+							pendingData = dataSet;
 						if (newData) {
-							Log.d(TAG, "New data... trying to transmit.");
-							Log.d(TAG,
-									String.format(
-											"0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x",
-											dataSet[0], dataSet[1], dataSet[2],
-											dataSet[3], dataSet[4], dataSet[5]));
+							if (DEBUG) {
+								Log.d(TAG, "New data... trying to transmit.");
+								Log.d(TAG,
+										String.format(
+												"0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x",
+												pendingData[0], pendingData[1],
+												pendingData[2], pendingData[3],
+												pendingData[4], pendingData[5]));
+							}
 							try {
 								if (outStream != null) {
-									for(int j = 0; j < dataSet.length;j++)
-									{
-										outStream.write(dataSet[j]);
-										wait(1, 1);
+									int tmpCnt = 0;
+									for (int j = 0; j < pendingData.length; j++) {
+										outStream.write(pendingData[j]);
+										while (inStream.read() != 0xAC) {
+											tmpCnt++;
+											if (tmpCnt >= 200) {
+												Log.e(TAG,
+														"Timeout of BT communication occured.");
+												break;
+											}
+										}
+										tmpCnt = 0;
 									}
 								}
 								Thread.sleep(10);
 							} catch (IOException e) {
 								Log.d(TAG, "ERROR within BTControl Thread.");
 								Log.d(TAG, "Exception: " + e.toString());
-							} catch (InterruptedException e) {
-								// TODO Auto-generated catch block
-								Log.d(TAG, "BT Sleep interrupted, ignoring.");
 							} catch (Exception e) {
 								Log.e(TAG, "Generic exception caught...");
 								e.printStackTrace();
 							}
 							for (int i = 0; i < dataSet.length; i++)
-								prevData[i] = dataSet[i];
+								prevData[i] = pendingData[i];
 							newData = false;
 						}
 					} else {
@@ -201,6 +216,7 @@ public class MainActivity extends Activity {
 		try {
 			mSocket.connect();
 			outStream = mSocket.getOutputStream();
+			inStream = mSocket.getInputStream();
 			cStatus.setText("Connected");
 		} catch (Exception e) {
 			// Do nothing, just assume the bot isn't available at this time.
@@ -216,8 +232,9 @@ public class MainActivity extends Activity {
 		super.onPause();
 		if (outStream != null) {
 			try {
-				outStream.flush();
+				outStream = null;
 				mSocket.close();
+				cStatus.setText("Disconnected");
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
