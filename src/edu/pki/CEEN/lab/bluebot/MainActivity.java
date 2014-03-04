@@ -41,10 +41,11 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		
+
 		Runnable btControlRunnable;
 
-		dataSet = new byte[5];
+		dataSet = new byte[6];
+		dataSet[0] = (byte) 0xCA;
 
 		LeftDwnBtn = (Button) findViewById(R.id.LeftDownBtn);
 		LeftUpBtn = (Button) findViewById(R.id.LeftUpBtn);
@@ -68,9 +69,9 @@ public class MainActivity extends Activity {
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
 				if (event.getAction() == MotionEvent.ACTION_DOWN) {
-					dataSet[3] = (byte) 0xFF;
+					dataSet[4] = (byte) 0xFF;
 				} else if (event.getAction() == MotionEvent.ACTION_UP) {
-					dataSet[3] = 0x00;
+					dataSet[4] = 0x00;
 				}
 				return false;
 			}
@@ -80,9 +81,9 @@ public class MainActivity extends Activity {
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
 				if (event.getAction() == MotionEvent.ACTION_DOWN) {
-					dataSet[0] |= (byte) 0x01;
+					dataSet[1] |= (byte) 0x01;
 				} else if (event.getAction() == MotionEvent.ACTION_UP) {
-					dataSet[0] &= ~(0x01);
+					dataSet[1] &= ~(0x01);
 				}
 				return false;
 			}
@@ -92,9 +93,9 @@ public class MainActivity extends Activity {
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
 				if (event.getAction() == MotionEvent.ACTION_DOWN) {
-					dataSet[3] = (byte) 0x7F;
+					dataSet[4] = (byte) 0x7F;
 				} else if (event.getAction() == MotionEvent.ACTION_UP) {
-					dataSet[3] = 0x00;
+					dataSet[4] = 0x00;
 				}
 				return false;
 			}
@@ -104,9 +105,9 @@ public class MainActivity extends Activity {
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
 				if (event.getAction() == MotionEvent.ACTION_DOWN) {
-					dataSet[1] = (byte) 0x7F;
+					dataSet[2] = (byte) 0x7F;
 				} else if (event.getAction() == MotionEvent.ACTION_UP) {
-					dataSet[1] = 0x00;
+					dataSet[2] = 0x00;
 				}
 				return false;
 			}
@@ -116,35 +117,39 @@ public class MainActivity extends Activity {
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
 				if (event.getAction() == MotionEvent.ACTION_DOWN) {
-					dataSet[1] = (byte) 0xFF;
+					dataSet[2] = (byte) 0xFF;
 				} else if (event.getAction() == MotionEvent.ACTION_UP) {
-					dataSet[1] = 0x00;
+					dataSet[2] = 0x00;
 				}
 				return false;
 			}
 		});
-		
+
 		// Populate Runnable for thread creation.
-		btControlRunnable = new Runnable(){
+		btControlRunnable = new Runnable() {
 			@Override
-			public void run()
-			{
-				boolean newData = false;
-				byte prevData[] = new byte[5];
-				while(true)
-				{
-					if(killBtControl == false)
-					{
-						for(int i = 0;i < dataSet.length;i++)
-							if(dataSet[i] != prevData[i])
+			public void run() {
+				boolean newData = false; // Assume first run it's true.
+				byte prevData[] = new byte[6];
+				while (true) {
+					if (killBtControl == false) {
+						for (int i = 0; i < dataSet.length; i++)
+							if (dataSet[i] != prevData[i])
 								newData = true;
-						if(newData)
-						{
+						if (newData) {
 							Log.d(TAG, "New data... trying to transmit.");
+							Log.d(TAG,
+									String.format(
+											"0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x",
+											dataSet[0], dataSet[1], dataSet[2],
+											dataSet[3], dataSet[4], dataSet[5]));
 							try {
-								if(outStream != null)
-								{
-									outStream.write(dataSet);
+								if (outStream != null) {
+									for(int j = 0; j < dataSet.length;j++)
+									{
+										outStream.write(dataSet[j]);
+										wait(1, 1);
+									}
 								}
 								Thread.sleep(10);
 							} catch (IOException e) {
@@ -153,29 +158,28 @@ public class MainActivity extends Activity {
 							} catch (InterruptedException e) {
 								// TODO Auto-generated catch block
 								Log.d(TAG, "BT Sleep interrupted, ignoring.");
-							} catch (Exception e)
-							{
+							} catch (Exception e) {
 								Log.e(TAG, "Generic exception caught...");
 								e.printStackTrace();
 							}
-							for(int i = 0;i<dataSet.length;i++)
+							for (int i = 0; i < dataSet.length; i++)
 								prevData[i] = dataSet[i];
 							newData = false;
 						}
 					} else {
 						Log.i(TAG, "Killing BTControl Thread.");
-						return;			//Kills the thread...
+						return; // Kills the thread...
 					}
 				}
 			}
 		};
-		
-		//Create thread, but do not start it here. 
-		//Will prevent multiple threads from being 
-		//created and wasted resources.
-		btControl = new Thread(btControlRunnable ,"BTControl");
-		
-		//Set buttons clickable, not done when onTouchListener is used.
+
+		// Create thread, but do not start it here.
+		// Will prevent multiple threads from being
+		// created and wasted resources.
+		btControl = new Thread(btControlRunnable, "BTControl");
+
+		// Set buttons clickable, not done when onTouchListener is used.
 		RightDwnBtn.setClickable(true);
 		LeftDwnBtn.setClickable(true);
 		RightUpBtn.setClickable(true);
@@ -199,12 +203,13 @@ public class MainActivity extends Activity {
 			outStream = mSocket.getOutputStream();
 			cStatus.setText("Connected");
 		} catch (Exception e) {
-			//Do nothing, just assume the bot isn't available at this time.
+			// Do nothing, just assume the bot isn't available at this time.
 		}
-		//Start previously created thread.
-		try{
+		// Start previously created thread.
+		try {
 			btControl.start();
-		} catch (Exception e) {}
+		} catch (Exception e) {
+		}
 	}
 
 	protected void onPause() {
@@ -216,8 +221,9 @@ public class MainActivity extends Activity {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			
-			//	Stop the thread from wasting battery and keeping resources we don't need.
+
+			// Stop the thread from wasting battery and keeping resources we
+			// don't need.
 			killBtControl = true;
 		}
 	}
