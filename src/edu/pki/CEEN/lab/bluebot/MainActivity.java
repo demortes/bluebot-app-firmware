@@ -22,8 +22,8 @@ import edu.pki.CEEN.lab.bluebot.R;
 
 public class MainActivity extends Activity {
 
-	protected static final String TAG = "BluBoT";
-	protected static final boolean DEBUG = true;
+	protected static final String TAG = "BLUBoT";
+	protected static final boolean DEBUG = false;
 	private Button LeftDwnBtn;
 	private Button LeftUpBtn;
 	private TextView cStatus;
@@ -135,34 +135,32 @@ public class MainActivity extends Activity {
 			public void run() {
 				boolean newData = false; // Assume first run it's true.
 				byte prevData[] = new byte[6];
-				byte pendingData[] = new byte[6];
 				while (true) {
 					if (killBtControl == false) {
 						for (int i = 0; i < dataSet.length; i++)
 							if (dataSet[i] != prevData[i])
 								newData = true;
 						if(newData)
-							pendingData = dataSet;
 						if (newData) {
 							if (DEBUG) {
 								Log.d(TAG, "New data... trying to transmit.");
 								Log.d(TAG,
 										String.format(
 												"0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x",
-												pendingData[0], pendingData[1],
-												pendingData[2], pendingData[3],
-												pendingData[4], pendingData[5]));
+												dataSet[0], dataSet[1],
+												dataSet[2], dataSet[3],
+												dataSet[4], dataSet[5]));
 							}
 							try {
 								if (outStream != null) {
 									int tmpCnt = 0;
-									for (int j = 0; j < pendingData.length; j++) {
-										outStream.write(pendingData[j]);
+									for (int j = 0; j < dataSet.length; j++) {
+										outStream.write(prevData[j] = dataSet[j]);
 										while (inStream.read() != 0xAC) {
 											tmpCnt++;
 											if (tmpCnt >= 200) {
 												Log.e(TAG,
-														"Timeout of BT communication occured.");
+														"Timeout of BT communication occured. No ACK");
 												break;
 											}
 										}
@@ -177,8 +175,6 @@ public class MainActivity extends Activity {
 								Log.e(TAG, "Generic exception caught...");
 								e.printStackTrace();
 							}
-							for (int i = 0; i < dataSet.length; i++)
-								prevData[i] = pendingData[i];
 							newData = false;
 						}
 					} else {
@@ -233,7 +229,10 @@ public class MainActivity extends Activity {
 		if (outStream != null) {
 			try {
 				outStream = null;
+				inStream = null;
 				mSocket.close();
+				mSocket = null;
+				mDevice = null;
 				cStatus.setText("Disconnected");
 			} catch (IOException e) {
 				e.printStackTrace();
