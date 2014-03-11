@@ -74,8 +74,35 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@+id/RightDwnBtn"
-        android:layout_marginLeft="18dp"
+        android:layout_marginLeft="14dp"
         android:layout_toRightOf="@+id/ConnectionStatus"
         android:text="@string/horn" />
+
+    <Button
+        android:id="@+id/joystickback"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/ConnectionStatus"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="22dp"
+        android:background="@drawable/joystickback" />
+
+    <Button
+        android:id="@+id/joysticktop"
+        android:layout_width="47dp"
+        android:layout_height="52dp"
+        android:layout_alignBaseline="@+id/joystickback"
+        android:layout_alignBottom="@+id/joystickback"
+        android:layout_alignParentBottom="false"
+        android:layout_alignParentLeft="false"
+        android:layout_alignParentRight="false"
+        android:layout_alignParentTop="false"
+        android:layout_alignWithParentIfMissing="true"
+        android:layout_centerHorizontal="true"
+        android:layout_centerInParent="true"
+        android:layout_centerVertical="true"
+        android:background="@drawable/joysticktop"
+        android:clickable="false"
+        android:focusable="false" />
 
 </RelativeLayout>
