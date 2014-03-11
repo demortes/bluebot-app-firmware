@@ -16,7 +16,6 @@ import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import edu.pki.CEEN.lab.bluebot.R;
@@ -40,18 +39,11 @@ public class MainActivity extends Activity {
 	private Thread btControl;
 	private boolean killBtControl = false;
 	private InputStream inStream;
-	private Button joystickBase;
-	private Button joystickTop;
-	private class joyDefaultPositionClass {
-		float x;
-		float y;
-	}
-	private joyDefaultPositionClass joyDefaultPosition = new joyDefaultPositionClass();
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_main);
+		setContentView(R.layout.joystick);
 
 		Runnable btControlRunnable;
 
@@ -63,9 +55,6 @@ public class MainActivity extends Activity {
 		RightUpBtn = (Button) findViewById(R.id.RightUpBtn);
 		RightDwnBtn = (Button) findViewById(R.id.RightDwnBtn);
 		hornBtn = (Button) findViewById(R.id.hornBtn);
-		joystickBase = (Button) findViewById(R.id.joystickback);
-		joystickTop = (Button) findViewById(R.id.joysticktop);
-				
 
 		cStatus = (TextView) findViewById(R.id.ConnectionStatus);
 		mAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -79,32 +68,9 @@ public class MainActivity extends Activity {
 			startActivityForResult(enableBtIntent, 1);
 		}
 		
-		// Joy stick setup
-		joystickBase.setOnTouchListener(new View.OnTouchListener() {
-			
-			@Override
-			public boolean onTouch(View v, MotionEvent event) {
+		// TODO: Joy stick setup
 
-				if(event.getAction() == MotionEvent.ACTION_DOWN)
-				{
-					joyDefaultPosition.x = joystickTop.getX();
-					joyDefaultPosition.y = joystickTop.getY();
-					joystickTop.setX(event.getX() + joystickTop.getWidth()/2);
-					joystickTop.setY(event.getY() + joystickTop.getHeight()/2);
-				}
-				else if(event.getAction() == MotionEvent.ACTION_MOVE)
-				{
-					joystickTop.setX(event.getX() + joystickTop.getWidth()/2);
-					joystickTop.setY(event.getY() + joystickTop.getHeight()/2);
-				} else if (event.getAction() == MotionEvent.ACTION_UP)
-				{
-					joystickTop.setX(joyDefaultPosition.x);
-					joystickTop.setY(joyDefaultPosition.y);
-				}
-				return false;
-			}
-		});
-
+		
 		LeftDwnBtn.setOnTouchListener(new View.OnTouchListener() {
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
@@ -232,7 +198,6 @@ public class MainActivity extends Activity {
 		RightUpBtn.setClickable(true);
 		LeftUpBtn.setClickable(true);
 		hornBtn.setClickable(true);
-		joystickBase.setClickable(true);
 	}
 
 	protected void onResume() {
@@ -287,5 +252,4 @@ public class MainActivity extends Activity {
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
-
 }
