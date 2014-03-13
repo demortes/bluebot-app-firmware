@@ -5,6 +5,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.UUID;
 
+import com.MobileAnarchy.Android.Widgets.Joystick.JoystickMovedListener;
+import com.MobileAnarchy.Android.Widgets.Joystick.JoystickView;
+
 import android.os.Bundle;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -39,6 +42,10 @@ public class MainActivity extends Activity {
 	private Thread btControl;
 	private boolean killBtControl = false;
 	private InputStream inStream;
+	JoystickView joyStick;
+	TextView xView;
+	TextView yView;
+	 
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -55,9 +62,13 @@ public class MainActivity extends Activity {
 		RightUpBtn = (Button) findViewById(R.id.RightUpBtn);
 		RightDwnBtn = (Button) findViewById(R.id.RightDwnBtn);
 		hornBtn = (Button) findViewById(R.id.hornBtn);
+		joyStick = (JoystickView) findViewById(R.id.joystickView);
+		xView = (TextView) findViewById(R.id.TextViewX);
+		yView = (TextView) findViewById(R.id.TextViewY);
 
 		cStatus = (TextView) findViewById(R.id.ConnectionStatus);
 		mAdapter = BluetoothAdapter.getDefaultAdapter();
+
 		if (mAdapter == null) {
 			Toast.makeText(getApplicationContext(), "Bluetooth not available.",
 					Toast.LENGTH_LONG).show();
@@ -67,10 +78,9 @@ public class MainActivity extends Activity {
 					BluetoothAdapter.ACTION_REQUEST_ENABLE);
 			startActivityForResult(enableBtIntent, 1);
 		}
-		
+
 		// TODO: Joy stick setup
 
-		
 		LeftDwnBtn.setOnTouchListener(new View.OnTouchListener() {
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
@@ -91,7 +101,8 @@ public class MainActivity extends Activity {
 				} else if (event.getAction() == MotionEvent.ACTION_UP) {
 					dataSet[1] &= ~(0x01);
 				}
-				if(DEBUG) Log.d(TAG, String.format("Button Byte: 0x%02x", dataSet[1]));
+				if (DEBUG)
+					Log.d(TAG, String.format("Button Byte: 0x%02x", dataSet[1]));
 				return false;
 			}
 		});
@@ -132,6 +143,47 @@ public class MainActivity extends Activity {
 			}
 		});
 
+		joyStick.setOnJoystickMovedListener(new JoystickMovedListener() {
+
+			@Override
+			public void OnMoved(int x, int y) {
+
+				if (y >= -10 && y <= -8 && x >= 0 && x <= 2)
+					dataSet[2] = dataSet[4] = (byte) 0x7F; 
+				else if (y == 10 && y >= 8 && x >= 0 && x <= 2)
+					dataSet[2] = dataSet[4] = (byte) 0xFF;
+				else if(x >= 8 && y<= 2)
+				{
+					dataSet[4] = (byte) 0xFF;
+					dataSet[2] = 0x7F;
+				} else if( x <= -8 && y <= 2)
+				{
+					dataSet[2] = (byte) 0xFF;
+					dataSet[4] = 0x7F;
+				}
+//				dataSet[3] = (byte) (x * -1);
+//				dataSet[2] = (byte) (y * -1);
+//
+//				dataSet[4] = (byte) (x * -1);
+//				dataSet[5] = (byte) (y * -1);
+
+				xView.setText(String.format("%d", x));
+				yView.setText(String.format("%d", y));
+			}
+
+			@Override
+			public void OnReleased() {
+				// TODO Auto-generated method stub
+				dataSet[2] = dataSet[3] = dataSet[4] = dataSet[5] = (byte) 0x00;
+			}
+
+			@Override
+			public void OnReturnedToCenter() {
+				// TODO Auto-generated method stub
+				dataSet[2] = dataSet[3] = dataSet[4] = dataSet[5] = (byte) 0x00;
+			}
+		});
+
 		// Populate Runnable for thread creation.
 		btControlRunnable = new Runnable() {
 			@Override
@@ -143,43 +195,45 @@ public class MainActivity extends Activity {
 						for (int i = 0; i < dataSet.length; i++)
 							if (dataSet[i] != prevData[i])
 								newData = true;
-						if(newData)
-						if (newData) {
-							if (DEBUG) {
-								Log.d(TAG, "New data... trying to transmit.");
-								Log.d(TAG,
-										String.format(
-												"0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x",
-												dataSet[0], dataSet[1],
-												dataSet[2], dataSet[3],
-												dataSet[4], dataSet[5]));
-							}
-							try {
-								if (outStream != null) {
-									int tmpCnt = 0;
-									for (int j = 0; j < dataSet.length; j++) {
-										outStream.write(prevData[j] = dataSet[j]);
-										while (inStream.read() != 0xAC) {
-											tmpCnt++;
-											if (tmpCnt >= 200) {
-												Log.e(TAG,
-														"Timeout of BT communication occured. No ACK");
-												break;
-											}
-										}
-										tmpCnt = 0;
-									}
+						if (newData)
+							if (newData) {
+								if (DEBUG) {
+									Log.d(TAG,
+											"New data... trying to transmit.");
+									Log.d(TAG,
+											String.format(
+													"0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x",
+													dataSet[0], dataSet[1],
+													dataSet[2], dataSet[3],
+													dataSet[4], dataSet[5]));
 								}
-								Thread.sleep(10);
-							} catch (IOException e) {
-								Log.d(TAG, "ERROR within BTControl Thread.");
-								Log.d(TAG, "Exception: " + e.toString());
-							} catch (Exception e) {
-								Log.e(TAG, "Generic exception caught...");
-								e.printStackTrace();
+								try {
+									if (outStream != null) {
+										int tmpCnt = 0;
+										for (int j = 0; j < dataSet.length; j++) {
+											outStream
+													.write(prevData[j] = dataSet[j]);
+											while (inStream.read() != 0xAC) {
+												tmpCnt++;
+												if (tmpCnt >= 200) {
+													Log.e(TAG,
+															"Timeout of BT communication occured. No ACK");
+													break;
+												}
+											}
+											tmpCnt = 0;
+										}
+									}
+									Thread.sleep(10);
+								} catch (IOException e) {
+									Log.d(TAG, "ERROR within BTControl Thread.");
+									Log.d(TAG, "Exception: " + e.toString());
+								} catch (Exception e) {
+									Log.e(TAG, "Generic exception caught...");
+									e.printStackTrace();
+								}
+								newData = false;
 							}
-							newData = false;
-						}
 					} else {
 						Log.i(TAG, "Killing BTControl Thread.");
 						return; // Kills the thread...
@@ -202,13 +256,16 @@ public class MainActivity extends Activity {
 
 	protected void onResume() {
 		super.onResume();
-		mDevice = mAdapter.getRemoteDevice(macAddr);
-		mAdapter.cancelDiscovery();
-		try {
-			mSocket = mDevice.createInsecureRfcommSocketToServiceRecord(UUID
-					.fromString("00001101-0000-1000-8000-00805F9B34FB"));
-		} catch (IOException e) {
-			e.printStackTrace();
+		if (mSocket == null) {
+			mDevice = mAdapter.getRemoteDevice(macAddr);
+			mAdapter.cancelDiscovery();
+			try {
+				mSocket = mDevice
+						.createInsecureRfcommSocketToServiceRecord(UUID
+								.fromString("00001101-0000-1000-8000-00805F9B34FB"));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 
 		try {
@@ -224,6 +281,9 @@ public class MainActivity extends Activity {
 			btControl.start();
 		} catch (Exception e) {
 		}
+
+		if (joyStick.getUserCoordinateSystem() != JoystickView.COORDINATE_CARTESIAN)
+			joyStick.setUserCoordinateSystem(JoystickView.COORDINATE_CARTESIAN);
 	}
 
 	protected void onPause() {
@@ -233,8 +293,6 @@ public class MainActivity extends Activity {
 				outStream = null;
 				inStream = null;
 				mSocket.close();
-				mSocket = null;
-				mDevice = null;
 				cStatus.setText("Disconnected");
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -251,5 +309,14 @@ public class MainActivity extends Activity {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
+	}
+
+	public void resetJoyData() {
+		// TODO Auto-generated method stub
+		dataSet[2] = 0;
+		dataSet[3] = 0;
+		dataSet[4] = 0;
+		dataSet[5] = 0;
+
 	}
 }

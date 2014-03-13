@@ -26,9 +26,11 @@
         <TableRow>
 
             <TextView
+                android:id="@+id/x"
                 android:layout_width="50dip"
                 android:layout_height="wrap_content"
                 android:text="X" >
+
             </TextView>
 
             <TextView
@@ -42,9 +44,11 @@
         <TableRow>
 
             <TextView
+                android:id="@+id/y"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Y" >
+
             </TextView>
 
             <TextView

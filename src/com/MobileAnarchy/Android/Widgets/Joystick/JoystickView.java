@@ -1,5 +1,6 @@
 package com.MobileAnarchy.Android.Widgets.Joystick;
 
+import android.app.Application;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -74,6 +75,14 @@ public class JoystickView extends View {
 	//Cartesian coordinates of last touch point - joystick center is (0,0)
 	private int cartX, cartY;
 	
+	public int getCartX() {
+		return cartX;
+	}
+
+	public int getCartY() {
+		return cartY;
+	}
+
 	//Polar coordinates of the touch point from joystick center
 	private double radial;
 	private double angle;
@@ -214,11 +223,11 @@ public class JoystickView extends View {
 	// Public Methods 
 	// =========================================
 
-	public void setOnJostickMovedListener(JoystickMovedListener listener) {
+	public void setOnJoystickMovedListener(JoystickMovedListener listener) {
 		this.moveListener = listener;
 	}
 	
-	public void setOnJostickClickedListener(JoystickClickedListener listener) {
+	public void setOnJoystickClickedListener(JoystickClickedListener listener) {
 		this.clickListener = listener;
 	}
 	
