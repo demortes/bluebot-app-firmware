@@ -148,25 +148,8 @@ public class MainActivity extends Activity {
 			@Override
 			public void OnMoved(int x, int y) {
 
-				if (y >= -10 && y <= -8 && x >= 0 && x <= 2)
-					dataSet[2] = dataSet[4] = (byte) 0x7F; 
-				else if (y == 10 && y >= 8 && x >= 0 && x <= 2)
-					dataSet[2] = dataSet[4] = (byte) 0xFF;
-				else if(x >= 8 && y<= 2)
-				{
-					dataSet[4] = (byte) 0xFF;
-					dataSet[2] = 0x7F;
-				} else if( x <= -8 && y <= 2)
-				{
-					dataSet[2] = (byte) 0xFF;
-					dataSet[4] = 0x7F;
-				}
-//				dataSet[3] = (byte) (x * -1);
-//				dataSet[2] = (byte) (y * -1);
-//
-//				dataSet[4] = (byte) (x * -1);
-//				dataSet[5] = (byte) (y * -1);
-
+				dataSet[2] = dataSet[4] = (byte) (-12.7*y); 
+				dataSet[3] = dataSet[5] = (byte) (12.7*x);
 				xView.setText(String.format("%d", x));
 				yView.setText(String.format("%d", y));
 			}

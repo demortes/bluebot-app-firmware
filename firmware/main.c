@@ -54,16 +54,16 @@ void CBOT_main() {
 			UART_printf(UART_UART0, "Found new data.\r\n");
 #endif
 			for (i = 0; i < 6; i++)	// Get all six bytes, store for now
-			{
+					{
 				//Validate data as it comes in.
 				if (i == 1 && tmpData[0] != 0xCA) {
 					i = 0;
 				}
 
-				if(UART1_receive(&tmpData[i]) != UART_COMM_OK)
+				if (UART1_receive(&tmpData[i]) != UART_COMM_OK)
 					UART_printf(UART_UART0, "COMM ERROR: UART1\r\n");
 #if defined(DEBUG)
-				UART_printf(UART_UART0, "%d: 0x%02x\r\n", i, tmpData[i] );
+				UART_printf(UART_UART0, "%d: 0x%02x\r\n", i, tmpData[i]);
 #endif
 				UART1_transmit(0xAC);		// Send Ack
 				DELAY_us(10);
@@ -78,29 +78,84 @@ void CBOT_main() {
 
 		//--------------------Start Processing Data --------------------
 
-		if (dataSet[4] == 0x00) {
+		if (dataSet[5] == 0x00)			// Left Joystick left and right
+			;
+		else
+			;
+
+		if (dataSet[4] == 0x00) {		// Left Joystick Up and down
 			// Start Left Joystick Up/Down Processing
 			STEPPER_stop(STEPPER_LEFT, STEPPER_BRK_OFF);
 		} else if ((signed char) dataSet[4] > 0) {
-			STEPPER_run(STEPPER_LEFT, STEPPER_FWD, 200);
+			STEPPER_run(STEPPER_LEFT, STEPPER_FWD, (200*dataSet[4])/127);
 		} else if ((signed char) dataSet[4] < 0) {
-			STEPPER_run(STEPPER_LEFT, STEPPER_REV, 200);
+			STEPPER_run(STEPPER_LEFT, STEPPER_REV, (-200* (signed char) dataSet[4])/127);
 		} 		// END Left Joystick Up / Down processing
+
+
+		if (dataSet[3] == 0x00)			// Right Joystick Left & Right
+			;
+		else
+			;
 
 		//------------------------ Start Right Joystick U/D ------------
 		if (dataSet[2] == 0x00)
 			STEPPER_stop(STEPPER_RIGHT, STEPPER_BRK_OFF);
 		else if ((signed char) dataSet[2] > 0)
-			STEPPER_run(STEPPER_RIGHT, STEPPER_FWD, 200);
+			STEPPER_run(STEPPER_RIGHT, STEPPER_FWD, (200*dataSet[2])/127);
 		else
-			STEPPER_run(STEPPER_RIGHT, STEPPER_REV, 200);
+			STEPPER_run(STEPPER_RIGHT, STEPPER_REV, (-200* (signed char) dataSet[2])/127);
 		//------------------------- END RIGHT JOYSTICK U/D --------------
 
 		//------------------------- START BUTTON PROCESSING -------------
-		if ((dataSet[1] & 0x01) == 0x01)
+		// First Button
+		if (GBV(dataSet[1], 0))
 			SPKR_beep(400);
-		else if ((dataSet[1] & 0x01) == 0x00)
+		else
 			SPKR_beep(0);
+
+		// Second Button
+		if (GBV(dataSet[1], 1))
+			;
+		else
+			;
+
+		// Third Button
+		if (GBV(dataSet[1], 2))
+			;
+		else
+			;
+
+		//Fourth Button
+		if (GBV(dataSet[1], 3))
+			;
+		else
+			;
+
+		//Fifth Button
+		if (GBV(dataSet[1], 4))
+			;
+		else
+			;
+
+		//Sixth Button
+		if (GBV(dataSet[1], 5))
+			;
+		else
+			;
+
+		//Seventh Button
+		if (GBV(dataSet[1], 6))
+			;
+		else
+			;
+
+		//Eighth Button
+		if (GBV(dataSet[1], 7))
+			;
+		else
+			;
+
 		//-------------------------- END BUTTON PROCESSING ---------------
 
 		//-------------------------- PRINT STATUS ------------------------
