@@ -10,9 +10,12 @@
 //#define REPEATER
 #define DEBUG
 
+void speed_change(int change);
+
 uint8_t dataSet[6];
 uint8_t dataSet_defaults[6] = { 0xCA, 0x00, 0x00, 0x00, 0x00, 0x00 };
 uint8_t tmpData[6];
+int speed = 200;
 
 void CBOT_main() {
 	int i = 0;
@@ -78,83 +81,69 @@ void CBOT_main() {
 
 		//--------------------Start Processing Data --------------------
 
-		if (dataSet[5] == 0x00)			// Left Joystick left and right
-			;
-		else
-			;
+//		if (dataSet[5] == 0x00)			// Left Joystick left and right
+//			;
+//		else
+//			;
 
 		if (dataSet[4] == 0x00) {		// Left Joystick Up and down
 			// Start Left Joystick Up/Down Processing
 			STEPPER_stop(STEPPER_LEFT, STEPPER_BRK_OFF);
 		} else if ((signed char) dataSet[4] > 0) {
-			STEPPER_run(STEPPER_LEFT, STEPPER_FWD, (200*dataSet[4])/127);
+			STEPPER_run(STEPPER_LEFT, STEPPER_FWD, (speed*dataSet[4])/127);
 		} else if ((signed char) dataSet[4] < 0) {
-			STEPPER_run(STEPPER_LEFT, STEPPER_REV, (-200* (signed char) dataSet[4])/127);
+			STEPPER_run(STEPPER_LEFT, STEPPER_REV, (-speed* (signed char) dataSet[4])/127);
 		} 		// END Left Joystick Up / Down processing
 
 
-		if (dataSet[3] == 0x00)			// Right Joystick Left & Right
-			;
-		else
-			;
+//		if (dataSet[3] == 0x00)			// Right Joystick Left & Right
+//			;
+//		else
+//			;
 
 		//------------------------ Start Right Joystick U/D ------------
 		if (dataSet[2] == 0x00)
 			STEPPER_stop(STEPPER_RIGHT, STEPPER_BRK_OFF);
 		else if ((signed char) dataSet[2] > 0)
-			STEPPER_run(STEPPER_RIGHT, STEPPER_FWD, (200*dataSet[2])/127);
+			STEPPER_run(STEPPER_RIGHT, STEPPER_FWD, (speed*dataSet[2])/127);
 		else
-			STEPPER_run(STEPPER_RIGHT, STEPPER_REV, (-200* (signed char) dataSet[2])/127);
+			STEPPER_run(STEPPER_RIGHT, STEPPER_REV, (-speed*(signed char) dataSet[2])/127);
 		//------------------------- END RIGHT JOYSTICK U/D --------------
 
 		//------------------------- START BUTTON PROCESSING -------------
-		// First Button
-		if (GBV(dataSet[1], 0))
+		// L2 button
+		if (dataSet[1] & 0x01)
+			speed_change(-1);
+
+		// R2 Button
+		if (dataSet[1] & 0x02)
+			speed_change(1);
+
+		// L1 Button
+//		if (GBV(dataSet[1], 2))
+//			;
+
+		//R1 Button
+//		if (GBV(dataSet[1], 3))
+//			;
+
+		//Triangle Button
+//		if (GBV(dataSet[1], 4))
+//			;
+
+		//Circle Button
+//		if (GBV(dataSet[1], 5))
+//			;
+
+		//X Button
+		if (dataSet[1] & 0x40)
 			SPKR_beep(400);
 		else
 			SPKR_beep(0);
 
-		// Second Button
-		if (GBV(dataSet[1], 1))
-			;
-		else
-			;
-
-		// Third Button
-		if (GBV(dataSet[1], 2))
-			;
-		else
-			;
-
-		//Fourth Button
-		if (GBV(dataSet[1], 3))
-			;
-		else
-			;
-
-		//Fifth Button
-		if (GBV(dataSet[1], 4))
-			;
-		else
-			;
-
-		//Sixth Button
-		if (GBV(dataSet[1], 5))
-			;
-		else
-			;
-
-		//Seventh Button
-		if (GBV(dataSet[1], 6))
-			;
-		else
-			;
-
-		//Eighth Button
-		if (GBV(dataSet[1], 7))
-			;
-		else
-			;
+		//Square Button
+//		if (GBV(dataSet[1], 7))
+//			;
 
 		//-------------------------- END BUTTON PROCESSING ---------------
 
@@ -162,8 +151,29 @@ void CBOT_main() {
 		LCD_printf("- Bytes -\n");
 		LCD_printf("0. 0x%02x    1. 0x%02x\n", dataSet[0], dataSet[1]);
 		LCD_printf("2. 0x%02x    3. 0x%02x\n", dataSet[2], dataSet[3]);
-		LCD_printf("4. 0x%02x\n", dataSet[4]);
+		LCD_printf("4. 0x%02x    S. %03d\n", dataSet[4], speed);
 		//-------------------------- END PRINTING ------------------------
 #endif
+	}
+}
+
+void speed_change(int change)
+{
+#ifdef DEBUG
+	UART_printf(UART_UART0, "SPEED: Byte: 0x%02x\n", dataSet[1]);
+#endif
+	if((speed < 300))
+	{
+		if(change > 0)
+		{
+			speed++;
+		}
+	}
+	if(speed > 0)
+	{
+		if (change < 0)
+		{
+			speed--;
+		}
 	}
 }
