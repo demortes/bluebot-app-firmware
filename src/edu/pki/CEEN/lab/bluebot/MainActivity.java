@@ -27,17 +27,14 @@ public class MainActivity extends Activity {
 
 	protected static final String TAG = "BLUBoT";
 	protected static final boolean DEBUG = false;
-	private Button LeftDwnBtn;
-	private Button LeftUpBtn;
 	private TextView cStatus;
 	private BluetoothAdapter mAdapter;
 	private BluetoothSocket mSocket;
 	private BluetoothDevice mDevice;
 	private OutputStream outStream;
 	private String macAddr = "20:13:01:22:12:07";
-	private Button RightUpBtn;
-	private Button RightDwnBtn;
-	private Button hornBtn;
+	private Button xBtn, l1Btn, l2Btn, r1Btn, r2Btn, circleBtn, squareBtn,
+			triangleBtn;
 	private byte dataSet[];
 	private Thread btControl;
 	private boolean killBtControl = false;
@@ -45,7 +42,6 @@ public class MainActivity extends Activity {
 	JoystickView joyStick;
 	TextView xView;
 	TextView yView;
-	 
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -57,11 +53,15 @@ public class MainActivity extends Activity {
 		dataSet = new byte[6];
 		dataSet[0] = (byte) 0xCA;
 
-		LeftDwnBtn = (Button) findViewById(R.id.LeftDownBtn);
-		LeftUpBtn = (Button) findViewById(R.id.LeftUpBtn);
-		RightUpBtn = (Button) findViewById(R.id.RightUpBtn);
-		RightDwnBtn = (Button) findViewById(R.id.RightDwnBtn);
-		hornBtn = (Button) findViewById(R.id.hornBtn);
+		xBtn = (Button) findViewById(R.id.xBtn);
+		l1Btn = (Button) findViewById(R.id.L1Btn);
+		l2Btn = (Button) findViewById(R.id.L2Btn);
+		r1Btn = (Button) findViewById(R.id.r1Btn);
+		r2Btn = (Button) findViewById(R.id.R2Btn);
+		squareBtn = (Button) findViewById(R.id.squareBtn);
+		circleBtn = (Button) findViewById(R.id.circleBtn);
+		triangleBtn = (Button) findViewById(R.id.triangleBtn);
+
 		joyStick = (JoystickView) findViewById(R.id.joystickView);
 		xView = (TextView) findViewById(R.id.TextViewX);
 		yView = (TextView) findViewById(R.id.TextViewY);
@@ -81,25 +81,13 @@ public class MainActivity extends Activity {
 
 		// TODO: Joy stick setup
 
-		LeftDwnBtn.setOnTouchListener(new View.OnTouchListener() {
+		xBtn.setOnTouchListener(new View.OnTouchListener() {
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
 				if (event.getAction() == MotionEvent.ACTION_DOWN) {
-					dataSet[4] = (byte) 0xFF;
+					dataSet[1] |= (byte) (1 << 6);
 				} else if (event.getAction() == MotionEvent.ACTION_UP) {
-					dataSet[4] = 0x00;
-				}
-				return false;
-			}
-		});
-
-		hornBtn.setOnTouchListener(new View.OnTouchListener() {
-			@Override
-			public boolean onTouch(View v, MotionEvent event) {
-				if (event.getAction() == MotionEvent.ACTION_DOWN) {
-					dataSet[1] |= (byte) 0x01;
-				} else if (event.getAction() == MotionEvent.ACTION_UP) {
-					dataSet[1] &= ~(0x01);
+					dataSet[1] &= ~(1 << 6);
 				}
 				if (DEBUG)
 					Log.d(TAG, String.format("Button Byte: 0x%02x", dataSet[1]));
@@ -107,38 +95,97 @@ public class MainActivity extends Activity {
 			}
 		});
 
-		LeftUpBtn.setOnTouchListener(new View.OnTouchListener() {
+		circleBtn.setOnTouchListener(new View.OnTouchListener() {
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
 				if (event.getAction() == MotionEvent.ACTION_DOWN) {
-					dataSet[4] = (byte) 0x7F;
+					dataSet[1] |= (byte) (1 << 5);
 				} else if (event.getAction() == MotionEvent.ACTION_UP) {
-					dataSet[4] = 0x00;
+					dataSet[1] &= ~(1 << 5);
 				}
+				if (DEBUG)
+					Log.d(TAG, String.format("Button Byte: 0x%02x", dataSet[1]));
 				return false;
 			}
 		});
 
-		RightUpBtn.setOnTouchListener(new View.OnTouchListener() {
+		squareBtn.setOnTouchListener(new View.OnTouchListener() {
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
 				if (event.getAction() == MotionEvent.ACTION_DOWN) {
-					dataSet[2] = (byte) 0x7F;
+					dataSet[1] |= (byte) (1 << 7);
 				} else if (event.getAction() == MotionEvent.ACTION_UP) {
-					dataSet[2] = 0x00;
+					dataSet[1] &= ~(1 << 7);
 				}
+				if (DEBUG)
+					Log.d(TAG, String.format("Button Byte: 0x%02x", dataSet[1]));
 				return false;
 			}
 		});
 
-		RightDwnBtn.setOnTouchListener(new View.OnTouchListener() {
+		triangleBtn.setOnTouchListener(new View.OnTouchListener() {
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
 				if (event.getAction() == MotionEvent.ACTION_DOWN) {
-					dataSet[2] = (byte) 0xFF;
+					dataSet[1] |= (byte) (1 << 4);
 				} else if (event.getAction() == MotionEvent.ACTION_UP) {
-					dataSet[2] = 0x00;
+					dataSet[1] &= ~(1 << 4);
 				}
+				if (DEBUG)
+					Log.d(TAG, String.format("Button Byte: 0x%02x", dataSet[1]));
+				return false;
+			}
+		});
+		r1Btn.setOnTouchListener(new View.OnTouchListener() {
+			@Override
+			public boolean onTouch(View v, MotionEvent event) {
+				if (event.getAction() == MotionEvent.ACTION_DOWN) {
+					dataSet[1] |= (byte) (1 << 3);
+				} else if (event.getAction() == MotionEvent.ACTION_UP) {
+					dataSet[1] &= ~(1 << 3);
+				}
+				if (DEBUG)
+					Log.d(TAG, String.format("Button Byte: 0x%02x", dataSet[1]));
+				return false;
+			}
+		});
+
+		l1Btn.setOnTouchListener(new View.OnTouchListener() {
+			@Override
+			public boolean onTouch(View v, MotionEvent event) {
+				if (event.getAction() == MotionEvent.ACTION_DOWN) {
+					dataSet[1] |= (byte) (1 << 2);
+				} else if (event.getAction() == MotionEvent.ACTION_UP) {
+					dataSet[1] &= ~(1 << 2);
+				}
+				if (DEBUG)
+					Log.d(TAG, String.format("Button Byte: 0x%02x", dataSet[1]));
+				return false;
+			}
+		});
+		r2Btn.setOnTouchListener(new View.OnTouchListener() {
+			@Override
+			public boolean onTouch(View v, MotionEvent event) {
+				if (event.getAction() == MotionEvent.ACTION_DOWN) {
+					dataSet[1] |= (byte) (1 << 1);
+				} else if (event.getAction() == MotionEvent.ACTION_UP) {
+					dataSet[1] &= ~(1 << 1);
+				}
+				if (DEBUG)
+					Log.d(TAG, String.format("Button Byte: 0x%02x", dataSet[1]));
+				return false;
+			}
+		});
+		l2Btn.setOnTouchListener(new View.OnTouchListener() {
+			@Override
+			public boolean onTouch(View v, MotionEvent event) {
+				if (event.getAction() == MotionEvent.ACTION_DOWN) {
+					dataSet[1] |= (byte) (1 << 0);
+				} else if (event.getAction() == MotionEvent.ACTION_UP) {
+					dataSet[1] &= ~(1 << 0);
+				}
+				if (DEBUG)
+					Log.d(TAG, String.format("Button Byte: 0x%02x", dataSet[1]));
 				return false;
 			}
 		});
@@ -148,21 +195,19 @@ public class MainActivity extends Activity {
 			@Override
 			public void OnMoved(int x, int y) {
 
-				dataSet[2] = dataSet[4] = (byte) (-12.7*y); 
-				dataSet[3] = dataSet[5] = (byte) (12.7*x);
+				dataSet[2] = dataSet[4] = (byte) (-12.7 * y);
+				dataSet[3] = dataSet[5] = (byte) (12.7 * x);
 				xView.setText(String.format("%d", x));
 				yView.setText(String.format("%d", y));
 			}
 
 			@Override
 			public void OnReleased() {
-				// TODO Auto-generated method stub
 				dataSet[2] = dataSet[3] = dataSet[4] = dataSet[5] = (byte) 0x00;
 			}
 
 			@Override
 			public void OnReturnedToCenter() {
-				// TODO Auto-generated method stub
 				dataSet[2] = dataSet[3] = dataSet[4] = dataSet[5] = (byte) 0x00;
 			}
 		});
@@ -230,11 +275,14 @@ public class MainActivity extends Activity {
 		btControl = new Thread(btControlRunnable, "BTControl");
 
 		// Set buttons clickable, not done when onTouchListener is used.
-		RightDwnBtn.setClickable(true);
-		LeftDwnBtn.setClickable(true);
-		RightUpBtn.setClickable(true);
-		LeftUpBtn.setClickable(true);
-		hornBtn.setClickable(true);
+		xBtn.setClickable(true);
+		r1Btn.setClickable(true);
+		r2Btn.setClickable(true);
+		l1Btn.setClickable(true);
+		l2Btn.setClickable(true);
+		squareBtn.setClickable(true);
+		circleBtn.setClickable(true);
+		triangleBtn.setClickable(true);
 	}
 
 	protected void onResume() {
@@ -295,7 +343,6 @@ public class MainActivity extends Activity {
 	}
 
 	public void resetJoyData() {
-		// TODO Auto-generated method stub
 		dataSet[2] = 0;
 		dataSet[3] = 0;
 		dataSet[4] = 0;
