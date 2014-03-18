@@ -14,6 +14,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MotionEvent;
@@ -25,30 +26,38 @@ import edu.pki.CEEN.lab.bluebot.R;
 
 public class MainActivity extends Activity {
 
-	protected static final String TAG = "BLUBoT";
+	protected static final String TAG = "MainActivity";
 	protected static final boolean DEBUG = false;
 	private TextView cStatus;
 	private BluetoothAdapter mAdapter;
 	private BluetoothSocket mSocket;
 	private BluetoothDevice mDevice;
 	private OutputStream outStream;
-	private String macAddr = "20:13:01:22:12:07";
+	private String macAddr = null; //"20:13:01:22:12:07";
 	private Button xBtn, l1Btn, l2Btn, r1Btn, r2Btn, circleBtn, squareBtn,
 			triangleBtn;
 	private byte dataSet[];
 	private Thread btControl;
 	private boolean killBtControl = false;
 	private InputStream inStream;
-	JoystickView joyStick;
+	JoystickView joyStickL;
 	TextView xView;
 	TextView yView;
+	private JoystickView joyStickR;
+	
+	Runnable btControlRunnable;
 
+	@Override
+	public void onConfigurationChanged(Configuration newConfig) {
+	  // ignore orientation/keyboard change
+	  super.onConfigurationChanged(newConfig);
+	}
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.joystick);
 
-		Runnable btControlRunnable;
 
 		dataSet = new byte[6];
 		dataSet[0] = (byte) 0xCA;
@@ -62,24 +71,13 @@ public class MainActivity extends Activity {
 		circleBtn = (Button) findViewById(R.id.circleBtn);
 		triangleBtn = (Button) findViewById(R.id.triangleBtn);
 
-		joyStick = (JoystickView) findViewById(R.id.joystickView);
+		joyStickL = (JoystickView) findViewById(R.id.JoystickViewL);
+		joyStickR = (JoystickView) findViewById(R.id.joystickViewR);
 		xView = (TextView) findViewById(R.id.TextViewX);
 		yView = (TextView) findViewById(R.id.TextViewY);
 
 		cStatus = (TextView) findViewById(R.id.ConnectionStatus);
 		mAdapter = BluetoothAdapter.getDefaultAdapter();
-
-		if (mAdapter == null) {
-			Toast.makeText(getApplicationContext(), "Bluetooth not available.",
-					Toast.LENGTH_LONG).show();
-		}
-		if (!mAdapter.isEnabled()) {
-			Intent enableBtIntent = new Intent(
-					BluetoothAdapter.ACTION_REQUEST_ENABLE);
-			startActivityForResult(enableBtIntent, 1);
-		}
-
-		// TODO: Joy stick setup
 
 		xBtn.setOnTouchListener(new View.OnTouchListener() {
 			@Override
@@ -190,25 +188,43 @@ public class MainActivity extends Activity {
 			}
 		});
 
-		joyStick.setOnJoystickMovedListener(new JoystickMovedListener() {
+		joyStickL.setOnJoystickMovedListener(new JoystickMovedListener() {
 
 			@Override
 			public void OnMoved(int x, int y) {
 
-				dataSet[2] = dataSet[4] = (byte) (-12.7 * y);
-				dataSet[3] = dataSet[5] = (byte) (12.7 * x);
-				xView.setText(String.format("%d", x));
-				yView.setText(String.format("%d", y));
+				dataSet[4] = (byte) (-12.7 * y);
+				dataSet[5] = (byte) (12.7 * x);
 			}
 
 			@Override
 			public void OnReleased() {
-				dataSet[2] = dataSet[3] = dataSet[4] = dataSet[5] = (byte) 0x00;
+				dataSet[5] = dataSet[4] = (byte) 0x00;
 			}
 
 			@Override
 			public void OnReturnedToCenter() {
-				dataSet[2] = dataSet[3] = dataSet[4] = dataSet[5] = (byte) 0x00;
+				dataSet[5] = dataSet[4] = (byte) 0x00;
+			}
+		});
+		
+		joyStickR.setOnJoystickMovedListener(new JoystickMovedListener() {
+
+			@Override
+			public void OnMoved(int x, int y) {
+
+				dataSet[2] = (byte) (-12.7 * y);
+				dataSet[3] = (byte) (12.7 * x);
+			}
+
+			@Override
+			public void OnReleased() {
+				dataSet[3] = dataSet[2] = (byte) 0x00;
+			}
+
+			@Override
+			public void OnReturnedToCenter() {
+				dataSet[3] = dataSet[2] = (byte) 0x00;
 			}
 		});
 
@@ -272,7 +288,6 @@ public class MainActivity extends Activity {
 		// Create thread, but do not start it here.
 		// Will prevent multiple threads from being
 		// created and wasted resources.
-		btControl = new Thread(btControlRunnable, "BTControl");
 
 		// Set buttons clickable, not done when onTouchListener is used.
 		xBtn.setClickable(true);
@@ -287,47 +302,38 @@ public class MainActivity extends Activity {
 
 	protected void onResume() {
 		super.onResume();
-		if (mSocket == null) {
-			mDevice = mAdapter.getRemoteDevice(macAddr);
-			mAdapter.cancelDiscovery();
-			try {
-				mSocket = mDevice
-						.createInsecureRfcommSocketToServiceRecord(UUID
-								.fromString("00001101-0000-1000-8000-00805F9B34FB"));
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+		
+		if (mAdapter == null) {
+			Toast.makeText(getApplicationContext(), "Bluetooth not available.",
+					Toast.LENGTH_LONG).show();
 		}
+		if (!mAdapter.isEnabled()) {
+			Intent enableBtIntent = new Intent(
+					BluetoothAdapter.ACTION_REQUEST_ENABLE);
+			startActivityForResult(enableBtIntent, 1);
+		}
+		
+		btControl = new Thread(btControlRunnable, "BTControl");
+		if(macAddr == null)
+		{
+			Intent deviceIntent = new Intent(this, DeviceListActivity.class);
+			startActivityForResult(deviceIntent, 1);
+		} else
+			connectBT();
 
-		try {
-			mSocket.connect();
-			outStream = mSocket.getOutputStream();
-			inStream = mSocket.getInputStream();
-			cStatus.setText("Connected");
-		} catch (Exception e) {
-			// Do nothing, just assume the bot isn't available at this time.
-		}
-		// Start previously created thread.
-		try {
-			btControl.start();
-		} catch (Exception e) {
-		}
-
-		if (joyStick.getUserCoordinateSystem() != JoystickView.COORDINATE_CARTESIAN)
-			joyStick.setUserCoordinateSystem(JoystickView.COORDINATE_CARTESIAN);
+		if (joyStickL.getUserCoordinateSystem() != JoystickView.COORDINATE_CARTESIAN)
+			joyStickL.setUserCoordinateSystem(JoystickView.COORDINATE_CARTESIAN);
 	}
 
 	protected void onPause() {
 		super.onPause();
 		if (outStream != null) {
 			try {
-				outStream = null;
-				inStream = null;
 				mSocket.close();
-				cStatus.setText("Disconnected");
+				mSocket = null;
 			} catch (IOException e) {
-				e.printStackTrace();
 			}
+			cStatus.setText("Disconnected");
 
 			// Stop the thread from wasting battery and keeping resources we
 			// don't need.
@@ -348,5 +354,59 @@ public class MainActivity extends Activity {
 		dataSet[4] = 0;
 		dataSet[5] = 0;
 
+	}
+	
+	protected void onActivityResult(int request, int result, Intent data)
+	{
+		if(request == 1)
+		{
+			if(result == RESULT_OK)
+			{
+				macAddr = data.getStringExtra("device_address");
+				connectBT();
+			}
+		}
+	}
+
+	private void connectBT()
+	{
+		if (mSocket == null && macAddr != null) {
+			mDevice = mAdapter.getRemoteDevice(macAddr);
+			mAdapter.cancelDiscovery();
+			try {
+				mSocket = mDevice
+						.createInsecureRfcommSocketToServiceRecord(UUID
+								.fromString("00001101-0000-1000-8000-00805F9B34FB"));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			
+			if (mSocket == null && macAddr != null) {
+				mDevice = mAdapter.getRemoteDevice(macAddr);
+				mAdapter.cancelDiscovery();
+				try {
+					mSocket = mDevice
+							.createInsecureRfcommSocketToServiceRecord(UUID
+									.fromString("00001101-0000-1000-8000-00805F9B34FB"));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+	
+			try {
+				mSocket.connect();
+				outStream = mSocket.getOutputStream();
+				inStream = mSocket.getInputStream();
+				cStatus.setText("Connected");
+				btControl.start();
+			} catch (IOException e) {
+				// Connection failed at this point, close the socket and move on.
+				try {
+					mSocket.close();
+					cStatus.setText("Disconnected");
+				} catch (IOException e1) {
+				}
+			}
+		}
 	}
 }

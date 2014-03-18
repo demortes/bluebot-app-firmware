@@ -90,11 +90,11 @@ void CBOT_main() {
 			// Start Left Joystick Up/Down Processing
 			STEPPER_stop(STEPPER_LEFT, STEPPER_BRK_OFF);
 		} else if ((signed char) dataSet[4] > 0) {
-			STEPPER_run(STEPPER_LEFT, STEPPER_FWD, (speed*dataSet[4])/127);
+			STEPPER_run(STEPPER_LEFT, STEPPER_FWD, (speed * dataSet[4]) / 127);
 		} else if ((signed char) dataSet[4] < 0) {
-			STEPPER_run(STEPPER_LEFT, STEPPER_REV, (-speed* (signed char) dataSet[4])/127);
+			STEPPER_run(STEPPER_LEFT, STEPPER_REV,
+					(-speed * (signed char) dataSet[4]) / 127);
 		} 		// END Left Joystick Up / Down processing
-
 
 //		if (dataSet[3] == 0x00)			// Right Joystick Left & Right
 //			;
@@ -104,10 +104,12 @@ void CBOT_main() {
 		//------------------------ Start Right Joystick U/D ------------
 		if (dataSet[2] == 0x00)
 			STEPPER_stop(STEPPER_RIGHT, STEPPER_BRK_OFF);
-		else if ((signed char) dataSet[2] > 0)
-			STEPPER_run(STEPPER_RIGHT, STEPPER_FWD, (speed*dataSet[2])/127);
-		else
-			STEPPER_run(STEPPER_RIGHT, STEPPER_REV, (-speed*(signed char) dataSet[2])/127);
+		else if ((signed char) dataSet[2] > 0) {
+			STEPPER_run(STEPPER_RIGHT, STEPPER_FWD, (speed * dataSet[2]) / 127);
+		} else if ((signed char) dataSet[2] < 0) {
+			STEPPER_run(STEPPER_RIGHT, STEPPER_REV,
+					(-speed * (signed char) dataSet[2]) / 127);
+		}
 		//------------------------- END RIGHT JOYSTICK U/D --------------
 
 		//------------------------- START BUTTON PROCESSING -------------
@@ -157,22 +159,17 @@ void CBOT_main() {
 	}
 }
 
-void speed_change(int change)
-{
+void speed_change(int change) {
 #ifdef DEBUG
 	UART_printf(UART_UART0, "SPEED: Byte: 0x%02x\n", dataSet[1]);
 #endif
-	if((speed < 300))
-	{
-		if(change > 0)
-		{
+	if ((speed < 300)) {
+		if (change > 0) {
 			speed++;
 		}
 	}
-	if(speed > 0)
-	{
-		if (change < 0)
-		{
+	if (speed > 0) {
+		if (change < 0) {
 			speed--;
 		}
 	}
