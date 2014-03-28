@@ -29,9 +29,10 @@
  */
 
 #include "capi324v221.h"
+#include <string.h>
 
-#define REPEATER
-#define DEBUG
+//#define REPEATER
+//#define DEBUG
 
 void speed_change(int change);
 void setup_hc();
@@ -57,17 +58,17 @@ void CBOT_main() {
 
 	//Test Bluetooth module, if it responds at 57600 continue. If not, call setup_hc()
 	DELAY_ms(1000);
-	UART_printf(UART_UART1, "AT");
+	UART_printf(UART_UART1, "AT\r\n");
 	DELAY_us(100);
 	if(!UART1_has_data())
 		setup_hc();
 	else
 	{
-		unsigned char response[4];
+		char response[4];
 		int i = 0;
 		while(UART1_has_data())
 		{
-			UART1_receive(&response[i++]);
+			UART1_receive((unsigned char *) &response[i++]);
 			if(i >= 4)
 			{
 				UART_printf(UART_UART0, "UART1 has more data than it should!");
@@ -80,12 +81,11 @@ void CBOT_main() {
 		}
 	}
 
-	STEPPER_set_accel(STEPPER_BOTH, 300);
+	STEPPER_set_accel(STEPPER_BOTH, 200);
 #if defined(DEBUG)
 	UART_printf(UART_UART0, "Debug mode enabled.\r\n");
 #endif
 	while (1) {
-		BATTERY_check();
 #if defined(REPEATER)
 		if (UART0_has_data()) {
 			uint8_t tmp;
@@ -226,7 +226,9 @@ void speed_change(int change) {
 
 void setup_hc()
 {
+#ifdef DEBUG
 	UART_printf(UART_UART0, "Detected illegible baud rate.\r\n");
+#endif
 	SBV(3, PORTA);			// Throw HC-05 into AT mode
 	UART_configure(UART_UART1, UART_8DBITS, UART_1SBIT, UART_NO_PARITY, 9600);
 	UART_set_RX_state(UART_UART1, UART_ENABLE);
@@ -247,6 +249,6 @@ void setup_hc()
 	UART_set_RX_state(UART_UART1, UART_ENABLE);
 	UART_set_TX_state(UART_UART1, UART_ENABLE);
 #ifdef DEBUG
-	UART_printf(UART_UART0, "Configured HC.");
+	UART_printf(UART_UART0, "Configured HC.\r\n");
 #endif
 }
