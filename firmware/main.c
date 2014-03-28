@@ -1,16 +1,40 @@
 /*
- * main.c
+ * Copyright (C) 2014 The Board of Regents of the University of Nebraska.
+ * All rights reserved.
  *
- *  Created on: Feb 17, 2014
- *      Author: Kevin Dethlefs-Moreno (CEEN @ UNL (Omaha Campus))
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its
+ * contributors may be used to endorse or promote products derived from this
+ * software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ * IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+ * OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include "capi324v221.h"
 
-//#define REPEATER
+#define REPEATER
 #define DEBUG
 
 void speed_change(int change);
+void setup_hc();
 
 uint8_t dataSet[6];
 uint8_t dataSet_defaults[6] = { 0xCA, 0x00, 0x00, 0x00, 0x00, 0x00 };
@@ -30,6 +54,31 @@ void CBOT_main() {
 	UART_set_TX_state(UART_UART1, UART_ENABLE);
 	UART_set_RX_state(UART_UART0, UART_ENABLE);
 	UART_set_TX_state(UART_UART0, UART_ENABLE);
+
+	//Test Bluetooth module, if it responds at 57600 continue. If not, call setup_hc()
+	DELAY_ms(1000);
+	UART_printf(UART_UART1, "AT");
+	DELAY_us(100);
+	if(!UART1_has_data())
+		setup_hc();
+	else
+	{
+		unsigned char response[4];
+		int i = 0;
+		while(UART1_has_data())
+		{
+			UART1_receive(&response[i++]);
+			if(i >= 4)
+			{
+				UART_printf(UART_UART0, "UART1 has more data than it should!");
+				break;
+			}
+		}
+		if(!strncmp(response, "OK\r\n", 4))
+		{
+			setup_hc();
+		}
+	}
 
 	STEPPER_set_accel(STEPPER_BOTH, 300);
 #if defined(DEBUG)
@@ -173,4 +222,31 @@ void speed_change(int change) {
 			speed--;
 		}
 	}
+}
+
+void setup_hc()
+{
+	UART_printf(UART_UART0, "Detected illegible baud rate.\r\n");
+	SBV(3, PORTA);			// Throw HC-05 into AT mode
+	UART_configure(UART_UART1, UART_8DBITS, UART_1SBIT, UART_NO_PARITY, 9600);
+	UART_set_RX_state(UART_UART1, UART_ENABLE);
+	UART_set_TX_state(UART_UART1, UART_ENABLE);
+#ifdef DEBUG
+	UART_printf(UART_UART0, "Changed speed.\r\n");
+#endif
+	UART_printf(UART_UART1, "AT\r\n");
+	DELAY_ms(30);
+	UART_printf(UART_UART1, "AT+UART=57600,0,0\r\n");
+#ifdef DEBUG
+	UART_printf(UART_UART0, "Sent AT+UART command.\r\n");
+#endif
+	DELAY_ms(30);
+	CBV(3, PORTA);
+
+	UART_configure(UART_UART1, UART_8DBITS, UART_1SBIT, UART_NO_PARITY, 57600);
+	UART_set_RX_state(UART_UART1, UART_ENABLE);
+	UART_set_TX_state(UART_UART1, UART_ENABLE);
+#ifdef DEBUG
+	UART_printf(UART_UART0, "Configured HC.");
+#endif
 }
