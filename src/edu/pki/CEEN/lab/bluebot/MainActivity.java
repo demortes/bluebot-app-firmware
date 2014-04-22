@@ -62,7 +62,7 @@ public class MainActivity extends Activity {
 	private BluetoothSocket mSocket;
 	private BluetoothDevice mDevice;
 	private OutputStream outStream;
-	private String macAddr = null; //"20:13:01:22:12:07";
+	private String macAddr = null; // "20:13:01:22:12:07";
 	private Button xBtn, l1Btn, l2Btn, r1Btn, r2Btn, circleBtn, squareBtn,
 			triangleBtn;
 	private byte dataSet[];
@@ -73,20 +73,19 @@ public class MainActivity extends Activity {
 	TextView xView;
 	TextView yView;
 	private JoystickView joyStickR;
-	
+
 	Runnable btControlRunnable;
 
 	@Override
 	public void onConfigurationChanged(Configuration newConfig) {
-	  // ignore orientation/keyboard change
-	  super.onConfigurationChanged(newConfig);
+		// ignore orientation/keyboard change
+		super.onConfigurationChanged(newConfig);
 	}
-	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.joystick);
-
 
 		dataSet = new byte[6];
 		dataSet[0] = (byte) 0xCA;
@@ -224,19 +223,31 @@ public class MainActivity extends Activity {
 
 				dataSet[4] = (byte) (-12.7 * y);
 				dataSet[5] = (byte) (12.7 * x);
+				
+				((TextView) findViewById(R.id.LX)).setText(String.format("X: %3d", dataSet[5]));
+				((TextView) findViewById(R.id.LY)).setText(String.format("Y: %3d", dataSet[4]));
 			}
 
 			@Override
 			public void OnReleased() {
 				dataSet[5] = dataSet[4] = (byte) 0x00;
+				
+				
+				((TextView) findViewById(R.id.LX)).setText(String.format("X: %3d", dataSet[5]));
+				((TextView) findViewById(R.id.LY)).setText(String.format("Y: %3d", dataSet[4]));
+
 			}
 
 			@Override
 			public void OnReturnedToCenter() {
 				dataSet[5] = dataSet[4] = (byte) 0x00;
+
+				((TextView) findViewById(R.id.LX)).setText(String.format("X: %3d", dataSet[5]));
+				((TextView) findViewById(R.id.LY)).setText(String.format("Y: %3d", dataSet[4]));
+
 			}
 		});
-		
+
 		joyStickR.setOnJoystickMovedListener(new JoystickMovedListener() {
 
 			@Override
@@ -244,16 +255,28 @@ public class MainActivity extends Activity {
 
 				dataSet[2] = (byte) (-12.7 * y);
 				dataSet[3] = (byte) (12.7 * x);
+				
+				((TextView) findViewById(R.id.RX)).setText(String.format("X: %3d", dataSet[3]));
+				((TextView) findViewById(R.id.RY)).setText(String.format("Y: %3d", dataSet[2]));
+
 			}
 
 			@Override
 			public void OnReleased() {
 				dataSet[3] = dataSet[2] = (byte) 0x00;
+
+				((TextView) findViewById(R.id.RX)).setText(String.format("X: %3d", dataSet[3]));
+				((TextView) findViewById(R.id.RY)).setText(String.format("Y: %3d", dataSet[2]));
+
 			}
 
 			@Override
 			public void OnReturnedToCenter() {
 				dataSet[3] = dataSet[2] = (byte) 0x00;
+
+				((TextView) findViewById(R.id.RX)).setText(String.format("X: %3d", dataSet[3]));
+				((TextView) findViewById(R.id.RY)).setText(String.format("Y: %3d", dataSet[2]));
+
 			}
 		});
 
@@ -331,7 +354,7 @@ public class MainActivity extends Activity {
 
 	protected void onResume() {
 		super.onResume();
-		
+
 		if (mAdapter == null) {
 			Toast.makeText(getApplicationContext(), "Bluetooth not available.",
 					Toast.LENGTH_LONG).show();
@@ -341,17 +364,17 @@ public class MainActivity extends Activity {
 					BluetoothAdapter.ACTION_REQUEST_ENABLE);
 			startActivityForResult(enableBtIntent, 1);
 		}
-		
+
 		btControl = new Thread(btControlRunnable, "BTControl");
-		if(macAddr == null)
-		{
+		if (macAddr == null) {
 			Intent deviceIntent = new Intent(this, DeviceListActivity.class);
 			startActivityForResult(deviceIntent, 1);
 		} else
 			connectBT();
 
 		if (joyStickL.getUserCoordinateSystem() != JoystickView.COORDINATE_CARTESIAN)
-			joyStickL.setUserCoordinateSystem(JoystickView.COORDINATE_CARTESIAN);
+			joyStickL
+					.setUserCoordinateSystem(JoystickView.COORDINATE_CARTESIAN);
 	}
 
 	protected void onPause() {
@@ -384,21 +407,23 @@ public class MainActivity extends Activity {
 		dataSet[5] = 0;
 
 	}
-	
-	protected void onActivityResult(int request, int result, Intent data)
-	{
-		if(request == 1)
-		{
-			if(result == RESULT_OK)
-			{
+
+	protected void onActivityResult(int request, int result, Intent data) {
+		if (request == 1) {
+			if (result == RESULT_OK) {
 				macAddr = data.getStringExtra("device_address");
 				connectBT();
+			} else {
+				Toast.makeText(getBaseContext(), "No connection selected. Killing app.", Toast.LENGTH_LONG).show();
+				Intent intent = new Intent(Intent.ACTION_MAIN);
+				intent.addCategory(Intent.CATEGORY_HOME);
+				intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				startActivity(intent);
 			}
 		}
 	}
 
-	private void connectBT()
-	{
+	private void connectBT() {
 		if (mSocket == null && macAddr != null) {
 			mDevice = mAdapter.getRemoteDevice(macAddr);
 			mAdapter.cancelDiscovery();
@@ -409,33 +434,34 @@ public class MainActivity extends Activity {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			
-			if (mSocket == null && macAddr != null) {
-				mDevice = mAdapter.getRemoteDevice(macAddr);
-				mAdapter.cancelDiscovery();
-				try {
-					mSocket = mDevice
-							.createInsecureRfcommSocketToServiceRecord(UUID
-									.fromString("00001101-0000-1000-8000-00805F9B34FB"));
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-	
+		}
+
+		try {
+			mSocket.connect();
+			outStream = mSocket.getOutputStream();
+			inStream = mSocket.getInputStream();
+			btControl.start();
+			cStatus.setText("Connected");
+		} catch (IOException e) {
+			// Connection failed at this point, close the socket and move
+			// on.
 			try {
-				mSocket.connect();
-				outStream = mSocket.getOutputStream();
-				inStream = mSocket.getInputStream();
-				cStatus.setText("Connected");
-				btControl.start();
-			} catch (IOException e) {
-				// Connection failed at this point, close the socket and move on.
-				try {
-					mSocket.close();
-					cStatus.setText("Disconnected");
-				} catch (IOException e1) {
-				}
+				mSocket.close();
+				cStatus.setText("Disconnected");
+				Log.e(TAG, "Connection failed.");
+			} catch (IOException e1) {
+				Log.e(TAG, "Exception thrown while handling exception.");
 			}
 		}
+	}
+
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		outState.putString("macAddr", macAddr);
+	}
+
+	@Override
+	protected void onRestoreInstanceState(Bundle savedInstanceState) {
+		macAddr = savedInstanceState.getString("macAddr");
 	}
 }

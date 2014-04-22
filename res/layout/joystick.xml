@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/ParentLayout"
+    android:id="@+id/JoyStickView"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent" >
 
@@ -128,5 +128,49 @@
         android:layout_alignParentBottom="true"
         android:layout_toRightOf="@+id/JoystickViewL"
         android:text="@string/l1" />
+
+    <TextView
+        android:id="@+id/LX"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/xBtn"
+        android:layout_alignParentLeft="true"
+        android:layout_toLeftOf="@+id/L2Btn"
+        android:ems="10"
+        android:text="X: " >
+
+        <requestFocus />
+    </TextView>
+
+    <TextView
+        android:id="@+id/LY"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/L1Btn"
+        android:layout_alignBottom="@+id/L1Btn"
+        android:layout_alignParentLeft="true"
+        android:layout_toLeftOf="@+id/L2Btn"
+        android:ems="10"
+        android:text="Y: " />
+
+    <TextView
+        android:id="@+id/RX"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/joystickViewR"
+        android:layout_toLeftOf="@+id/ButtonLayout"
+        android:layout_toRightOf="@+id/r1Btn"
+        android:ems="10"
+        android:text="X: " />
+
+    <TextView
+        android:id="@+id/RY"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/joystickViewR"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:ems="10"
+        android:text="Y: " />
 
 </RelativeLayout>
