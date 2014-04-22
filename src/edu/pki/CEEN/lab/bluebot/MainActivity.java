@@ -279,8 +279,6 @@ public class MainActivity extends Activity {
 		// Change resolution
 		joyStickL.setMovementRange(127);
 		joyStickR.setMovementRange(127);
-		joyStickL.setMovementConstraint(1);
-		joyStickR.setMovementConstraint(1);
 
 		// Populate Runnable for thread creation.
 		btControlRunnable = new Runnable() {
