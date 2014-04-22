@@ -32,7 +32,7 @@
 #include <string.h>
 
 //#define REPEATER
-//#define DEBUG
+#define DEBUG
 
 void speed_change(int change);
 void setup_hc();
@@ -43,9 +43,10 @@ uint8_t tmpData[6];
 int speed = 200;
 
 void CBOT_main() {
-	int i = 0;
+
 	LCD_open();
 	STEPPER_open();
+	DDRA |= (1 << PA3);
 	SPKR_open(SPKR_BEEP_MODE);
 	UART_open(UART_UART0);
 	UART_open(UART_UART1);
@@ -55,35 +56,42 @@ void CBOT_main() {
 	UART_set_TX_state(UART_UART1, UART_ENABLE);
 	UART_set_RX_state(UART_UART0, UART_ENABLE);
 	UART_set_TX_state(UART_UART0, UART_ENABLE);
+//	PORTA |= (1 << PA3);
 
 	//Test Bluetooth module, if it responds at 57600 continue. If not, call setup_hc()
-	DELAY_ms(1000);
+	DELAY_ms(3000);
 	UART_printf(UART_UART1, "AT\r\n");
 	DELAY_us(100);
-	if(!UART1_has_data())
-		setup_hc();
-	else
-	{
-		char response[4];
-		int i = 0;
-		while(UART1_has_data())
-		{
-			UART1_receive((unsigned char *) &response[i++]);
-			if(i >= 4)
-			{
-				UART_printf(UART_UART0, "UART1 has more data than it should!");
-				break;
-			}
-		}
-		if(!strncmp(response, "OK\r\n", 4))
-		{
-			setup_hc();
-		}
-	}
+#ifndef REPEATER
+	int i = 0;
+//	if(!UART1_has_data())
+//		setup_hc();
+//	else
+#endif
+//	{
+//		char response[4];
+//		int i = 0;
+//		while(UART1_has_data())
+//		{
+//			UART1_receive((unsigned char *) &response[i++]);
+//			if(i >= 4)
+//			{
+//				UART_printf(UART_UART0, "UART1 has more data than it should!");
+//				break;
+//			}
+//		}
+//		if(strncmp(response, "OK\r\n", 4))
+//		{
+//			setup_hc();
+//		}
+//	}
 
 	STEPPER_set_accel(STEPPER_BOTH, 200);
 #if defined(DEBUG)
 	UART_printf(UART_UART0, "Debug mode enabled.\r\n");
+#endif
+#if defined(REPEATER)
+	UART_printf(UART_UART0, "REPEAT mode enabled.");
 #endif
 	while (1) {
 #if defined(REPEATER)
@@ -239,6 +247,7 @@ void setup_hc()
 	UART_printf(UART_UART1, "AT\r\n");
 	DELAY_ms(30);
 	UART_printf(UART_UART1, "AT+UART=57600,0,0\r\n");
+	UART_printf(UART_UART1, "AT+BAUD7\r\n");
 #ifdef DEBUG
 	UART_printf(UART_UART0, "Sent AT+UART command.\r\n");
 #endif
