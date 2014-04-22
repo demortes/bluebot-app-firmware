@@ -4,35 +4,6 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent" >
 
-    <TableLayout
-        android:id="@+id/TableLayout1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/joystickViewR"
-        android:layout_centerHorizontal="true"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="10dip" >
-
-        <TableRow>
-
-            <TextView
-                android:id="@+id/TextViewX"
-                android:layout_width="100dip"
-                android:layout_height="wrap_content"
-                android:text="" />
-        </TableRow>
-
-        <TableRow>
-
-            <TextView
-                android:id="@+id/TextViewY"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="" >
-            </TextView>
-        </TableRow>
-    </TableLayout>
-
     <TextView
         android:id="@+id/ConnectionStatus"
         android:layout_width="wrap_content"
@@ -67,52 +38,6 @@
         android:layout_below="@+id/R2Btn"
         android:background="@drawable/trianglebutton" />
 
-    <com.MobileAnarchy.Android.Widgets.Joystick.JoystickView
-        android:id="@+id/JoystickViewL"
-        android:layout_width="175dip"
-        android:layout_height="175dip"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true" />
-
-    <com.MobileAnarchy.Android.Widgets.Joystick.JoystickView
-        android:id="@+id/joystickViewR"
-        android:layout_width="175dip"
-        android:layout_height="175dip"
-        android:layout_alignParentTop="true"
-        android:layout_toLeftOf="@+id/ButtonLayout" />
-
-    <Button
-        android:id="@+id/R2Btn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/circleBtn"
-        android:layout_below="@+id/ConnectionStatus"
-        android:text="@string/r2" />
-
-    <Button
-        android:id="@+id/L2Btn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/triangleBtn"
-        android:layout_toLeftOf="@+id/ConnectionStatus"
-        android:text="@string/l2" />
-
-    <Button
-        android:id="@+id/circleBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/squareBtn"
-        android:layout_toLeftOf="@+id/joystickViewR"
-        android:background="@drawable/circlebutton" />
-
-    <Button
-        android:id="@+id/squareBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/triangleBtn"
-        android:layout_toLeftOf="@+id/xBtn"
-        android:background="@drawable/squarebutton" />
-
     <Button
         android:id="@+id/r1Btn"
         android:layout_width="wrap_content"
@@ -128,5 +53,120 @@
         android:layout_alignParentBottom="true"
         android:layout_toRightOf="@+id/JoystickViewL"
         android:text="@string/l1" />
+
+    <TextView
+        android:id="@+id/LXLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/joystickViewR"
+        android:text="X: " />
+
+    <TextView
+        android:id="@+id/RX"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/RXLabel"
+        android:layout_alignBottom="@+id/RXLabel"
+        android:layout_alignParentRight="true"
+        android:text="0" />
+
+    <TextView
+        android:id="@+id/RY"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/RYLabel"
+        android:layout_alignBottom="@+id/RYLabel"
+        android:layout_alignParentRight="true"
+        android:text="0" />
+
+    <TextView
+        android:id="@+id/LX"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/LXLabel"
+        android:layout_alignBottom="@+id/LXLabel"
+        android:layout_alignLeft="@+id/LY"
+        android:text="0" />
+
+    <TextView
+        android:id="@+id/RXLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/LX"
+        android:layout_alignBottom="@+id/LX"
+        android:layout_toRightOf="@+id/r1Btn"
+        android:text="X: " />
+
+    <TextView
+        android:id="@+id/RYLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/xBtn"
+        android:layout_alignLeft="@+id/RXLabel"
+        android:text="Y: " />
+
+    <TextView
+        android:id="@+id/LYLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/LXLabel"
+        android:text="Y: " />
+
+    <TextView
+        android:id="@+id/LY"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/LYLabel"
+        android:layout_alignBottom="@+id/LYLabel"
+        android:layout_toLeftOf="@+id/L2Btn"
+        android:text="0" />
+
+    <Button
+        android:id="@+id/L2Btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/triangleBtn"
+        android:layout_toRightOf="@+id/JoystickViewL"
+        android:text="@string/l2" />
+
+    <Button
+        android:id="@+id/R2Btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/circleBtn"
+        android:layout_below="@+id/ConnectionStatus"
+        android:text="@string/r2" />
+
+    <Button
+        android:id="@+id/circleBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/xBtn"
+        android:layout_toRightOf="@+id/xBtn"
+        android:background="@drawable/circlebutton" />
+
+    <com.MobileAnarchy.Android.Widgets.Joystick.JoystickView
+        android:id="@+id/joystickViewR"
+        android:layout_width="175dip"
+        android:layout_height="175dip"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true" />
+
+    <com.MobileAnarchy.Android.Widgets.Joystick.JoystickView
+        android:id="@+id/JoystickViewL"
+        android:layout_width="175dip"
+        android:layout_height="175dip"
+        android:layout_above="@+id/LXLabel"
+        android:layout_alignParentLeft="true" />
+
+    <Button
+        android:id="@+id/squareBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/triangleBtn"
+        android:layout_toLeftOf="@+id/triangleBtn"
+        android:background="@drawable/squarebutton" />
 
 </RelativeLayout>

@@ -102,8 +102,6 @@ public class MainActivity extends Activity {
 
 		joyStickL = (JoystickView) findViewById(R.id.JoystickViewL);
 		joyStickR = (JoystickView) findViewById(R.id.joystickViewR);
-		xView = (TextView) findViewById(R.id.TextViewX);
-		yView = (TextView) findViewById(R.id.TextViewY);
 
 		cStatus = (TextView) findViewById(R.id.ConnectionStatus);
 		mAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -222,18 +220,27 @@ public class MainActivity extends Activity {
 			@Override
 			public void OnMoved(int x, int y) {
 
-				dataSet[4] = (byte) (-12.7 * y);
-				dataSet[5] = (byte) (12.7 * x);
+				dataSet[4] = (byte) -y;
+				dataSet[5] = (byte) x;
+				
+				((TextView) findViewById(R.id.LX)).setText(String.format("%d", dataSet[5]));
+				((TextView) findViewById(R.id.LY)).setText(String.format("%d", dataSet[4]));
 			}
 
 			@Override
 			public void OnReleased() {
 				dataSet[5] = dataSet[4] = (byte) 0x00;
+				
+				((TextView) findViewById(R.id.LX)).setText(String.format("%d", dataSet[5]));
+				((TextView) findViewById(R.id.LY)).setText(String.format("%d", dataSet[4]));
 			}
 
 			@Override
 			public void OnReturnedToCenter() {
 				dataSet[5] = dataSet[4] = (byte) 0x00;
+				
+				((TextView) findViewById(R.id.LX)).setText(String.format("%d", dataSet[5]));
+				((TextView) findViewById(R.id.LY)).setText(String.format("%d", dataSet[4]));
 			}
 		});
 		
@@ -242,20 +249,36 @@ public class MainActivity extends Activity {
 			@Override
 			public void OnMoved(int x, int y) {
 
-				dataSet[2] = (byte) (-12.7 * y);
-				dataSet[3] = (byte) (12.7 * x);
+				dataSet[2] = (byte) -y;
+				dataSet[3] = (byte) x;
+				
+				((TextView) findViewById(R.id.RX)).setText(String.format("%d", dataSet[3]));
+				((TextView) findViewById(R.id.RY)).setText(String.format("%d", dataSet[2]));
 			}
 
 			@Override
 			public void OnReleased() {
 				dataSet[3] = dataSet[2] = (byte) 0x00;
+				
+				((TextView) findViewById(R.id.RX)).setText(String.format("%d", dataSet[3]));
+				((TextView) findViewById(R.id.RY)).setText(String.format("%d", dataSet[2]));
+
 			}
 
 			@Override
 			public void OnReturnedToCenter() {
 				dataSet[3] = dataSet[2] = (byte) 0x00;
+				
+				((TextView) findViewById(R.id.RX)).setText(String.format("%d", dataSet[3]));
+				((TextView) findViewById(R.id.RY)).setText(String.format("%d", dataSet[2]));
+
 			}
 		});
+		
+		
+		// Change resolution
+		joyStickL.setMovementRange(127);
+		joyStickR.setMovementRange(127);
 
 		// Populate Runnable for thread creation.
 		btControlRunnable = new Runnable() {
