@@ -82,6 +82,22 @@
         android:layout_toLeftOf="@+id/ButtonLayout" />
 
     <Button
+        android:id="@+id/R2Btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/circleBtn"
+        android:layout_below="@+id/ConnectionStatus"
+        android:text="@string/r2" />
+
+    <Button
+        android:id="@+id/L2Btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/triangleBtn"
+        android:layout_toLeftOf="@+id/ConnectionStatus"
+        android:text="@string/l2" />
+
+    <Button
         android:id="@+id/circleBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -112,21 +128,5 @@
         android:layout_alignParentBottom="true"
         android:layout_toRightOf="@+id/JoystickViewL"
         android:text="@string/l1" />
-
-    <Button
-        android:id="@+id/L2Btn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/triangleBtn"
-        android:layout_toLeftOf="@+id/triangleBtn"
-        android:text="@string/l2" />
-
-    <Button
-        android:id="@+id/R2Btn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/r1Btn"
-        android:layout_below="@+id/ConnectionStatus"
-        android:text="@string/r2" />
 
 </RelativeLayout>
