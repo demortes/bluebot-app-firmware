@@ -354,7 +354,7 @@ public class MainActivity extends Activity {
 
 	protected void onResume() {
 		super.onResume();
-		
+		killBtControl = false;
 		if (mAdapter == null) {
 			Toast.makeText(getApplicationContext(), "Bluetooth not available.",
 					Toast.LENGTH_LONG).show();
