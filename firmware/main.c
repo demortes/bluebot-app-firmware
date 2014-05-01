@@ -58,7 +58,7 @@ void CBOT_main() {
 	UART_set_TX_state(UART_UART0, UART_ENABLE);
 //	PORTA |= (1 << PA3);
 
-	//Test Bluetooth module, if it responds at 57600 continue. If not, call setup_hc()
+//Test Bluetooth module, if it responds at 57600 continue. If not, call setup_hc()
 	DELAY_ms(3000);
 	UART_printf(UART_UART1, "AT\r\n");
 	DELAY_us(100);
@@ -232,8 +232,7 @@ void speed_change(int change) {
 	}
 }
 
-void setup_hc()
-{
+void setup_hc() {
 #ifdef DEBUG
 	UART_printf(UART_UART0, "Detected illegible baud rate.\r\n");
 #endif

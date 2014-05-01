@@ -291,7 +291,6 @@ public class MainActivity extends Activity {
 						for (int i = 0; i < dataSet.length; i++)
 							if (dataSet[i] != prevData[i])
 								newData = true;
-						if (newData)
 							if (newData) {
 								if (DEBUG) {
 									Log.d(TAG,
@@ -325,14 +324,42 @@ public class MainActivity extends Activity {
 									Log.d(TAG, "ERROR within BTControl Thread.");
 									Log.d(TAG, "Exception: " + e.toString());
 								} catch (Exception e) {
-									Log.e(TAG, "Generic exception caught...");
+									Log.e(TAG, "Generic exception caught in BT thread");
 									e.printStackTrace();
 								}
 								newData = false;
 							}
 					} else {
-						Log.i(TAG, "Killing BTControl Thread.");
-						return; // Kills the thread...
+						try{					// Stop all movement.
+							for(int k = 0; k < 6;k++)
+							{
+								outStream.write(0x00);
+								int tmpCnt = 0;
+								while(inStream.read() != 0xAC) {
+									tmpCnt++;
+									if (tmpCnt >= 200) {
+										Log.e(TAG,
+												"Timeout of BT communication occured. No ACK");
+										break;
+									}
+								}
+								
+								Log.d(TAG, "All stop sent.");
+							}
+						} catch (Exception e)
+						{
+							Log.d(TAG, "Received exception while trying to read/write BT.");
+						}
+
+						if (outStream != null) {
+							try {
+								mSocket.close();
+								mSocket = null;
+							} catch (IOException e) {
+							}
+							Log.i(TAG, "Killing BTControl Thread.");
+							return; // Kills the thread...
+						}
 					}
 				}
 			}
@@ -379,18 +406,12 @@ public class MainActivity extends Activity {
 
 	protected void onPause() {
 		super.onPause();
-		if (outStream != null) {
-			try {
-				mSocket.close();
-				mSocket = null;
-			} catch (IOException e) {
-			}
 			cStatus.setText("Disconnected");
 
 			// Stop the thread from wasting battery and keeping resources we
 			// don't need.
-			killBtControl = true;
-		}
+		
+		killBtControl = true;
 	}
 
 	@Override
