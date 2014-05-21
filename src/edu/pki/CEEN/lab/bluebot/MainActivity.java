@@ -73,6 +73,7 @@ public class MainActivity extends Activity {
 	TextView xView;
 	TextView yView;
 	private JoystickView joyStickR;
+	private static final int REQUEST_ENABLE_BT = 0;
 	
 	Runnable btControlRunnable;
 
@@ -389,7 +390,8 @@ public class MainActivity extends Activity {
 		if (!mAdapter.isEnabled()) {
 			Intent enableBtIntent = new Intent(
 					BluetoothAdapter.ACTION_REQUEST_ENABLE);
-			startActivityForResult(enableBtIntent, 1);
+			startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+			mAdapter.enable();
 		}
 		
 		btControl = new Thread(btControlRunnable, "BTControl");
