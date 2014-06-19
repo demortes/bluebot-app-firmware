@@ -4,17 +4,14 @@
     android:id="@+id/SettingsLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
-    <TextView
-        android:id="@+id/sensLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
-        android:text="@string/sensitivity" />
-
-    <SeekBar
-        android:id="@+id/sensBar"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:max="100" />
+    <SeekBarPreference
+        android:key="sensitivity"
+        android:summary="Changing this directly changes your maximum values transmitted."
+        android:title="@string/sensitivity"
+        android:min="0"
+        android:max="127"
+        android:default="127"
+        android:float="false"
+     />
 
 </PreferenceScreen>

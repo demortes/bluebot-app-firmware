@@ -1,10 +1,9 @@
 package edu.pki.CEEN.lab.bluebot;
 
-import android.annotation.TargetApi;
-import android.os.Build;
+import java.util.List;
+
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.support.v4.app.NavUtils;
 
@@ -20,20 +19,23 @@ import android.support.v4.app.NavUtils;
  * API Guide</a> for more information on developing a Settings UI.
  */
 public class SettingsActivity extends PreferenceActivity {
+	// Called only on Honeycomb and later
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.xml.preferences);
+	public void onCreate(Bundle savedInstance) {
+		super.onCreate(savedInstance);
+		
+        // Display the fragment as the main content.
+        getFragmentManager().beginTransaction()
+                .replace(android.R.id.content, new SettingsFragment())
+                .commit();
 	}
 	
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.menu, menu);
-		return true;
-	}
+//	public boolean onCreateOptionsMenu(Menu menu) {
+//		// Inflate the menu; this adds items to the action bar if it is present.
+//		getMenuInflater().inflate(R.menu.menu, menu);
+//		return true;
+//	}
 
-	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case android.R.id.home:

@@ -502,4 +502,17 @@ public class MainActivity extends Activity {
 			}
 		}
 	}
+	
+	public void onSaveInstanceState(Bundle savedInstanceState)
+	{
+		savedInstanceState.putString("macAddr", macAddr);
+		super.onSaveInstanceState(savedInstanceState);
+	}
+	
+	public void onRestoreInstanceState(Bundle savedInstanceState)
+	{
+		super.onRestoreInstanceState(savedInstanceState);
+		if (savedInstanceState != null)
+			macAddr = savedInstanceState.getString("macAddr");
+	}
 }
