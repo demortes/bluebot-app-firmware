@@ -384,15 +384,16 @@ public class MainActivity extends Activity {
 		super.onResume();
 		killBtControl = false;
 		if (mAdapter == null) {
-			Toast.makeText(getApplicationContext(), "Bluetooth not available.",
-					Toast.LENGTH_LONG).show();
-		}
-		if (!mAdapter.isEnabled()) {
+			Toast.makeText(getApplicationContext(), "Bluetooth not available.", Toast.LENGTH_LONG).show();
+		} else if (!mAdapter.isEnabled()) {
 			Intent enableBtIntent = new Intent(
 					BluetoothAdapter.ACTION_REQUEST_ENABLE);
 			startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-			mAdapter.enable();
+			//mAdapter.enable();
 		}
+		
+		while(mAdapter == null || mAdapter.isEnabled() == false)
+			;
 		
 		btControl = new Thread(btControlRunnable, "BTControl");
 		if(macAddr == null)
