@@ -216,7 +216,7 @@ public class MainActivity extends Activity {
 			}
 		});
 
-		joyStickL.setOnJoystickMovedListener(new JoystickMovedListener() {
+		joyStickL.setOnJostickMovedListener(new JoystickMovedListener() {
 
 			@Override
 			public void OnMoved(int x, int y) {
@@ -245,7 +245,7 @@ public class MainActivity extends Activity {
 			}
 		});
 		
-		joyStickR.setOnJoystickMovedListener(new JoystickMovedListener() {
+		joyStickR.setOnJostickMovedListener(new JoystickMovedListener() {
 
 			@Override
 			public void OnMoved(int x, int y) {
