@@ -114,11 +114,11 @@ void CBOT_main() {
 			UART_printf(UART_UART0, "Found new data.\r\n");
 #endif
 			for (i = 0; i < 6; i++)	// Get all six bytes, store for now
-					{
+			{
 				//Validate data as it comes in.
-				if (i == 1 && tmpData[0] != 0xCA) {
+				if (i == 1 && (tmpData[0] != 0xCA && tmpData[0] != 0xBE)) {
 					i = 0;
-				}
+			}
 
 				if (UART1_receive(&tmpData[i]) != UART_COMM_OK)
 					UART_printf(UART_UART0, "COMM ERROR: UART1\r\n");
@@ -135,6 +135,8 @@ void CBOT_main() {
 			if (tmpData[0] == 0xCA)
 				for (i = 1; i < 6; i++)
 					dataSet[i] = tmpData[i];
+			else if(tmpData[0] == 0xBE) 			//Heartbeat....
+				continue; //Send back 0xEB
 
 		//--------------------Start Processing Data --------------------
 

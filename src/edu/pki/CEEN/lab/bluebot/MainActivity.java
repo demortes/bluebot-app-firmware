@@ -33,11 +33,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.UUID;
-
 import com.MobileAnarchy.Android.Widgets.Joystick.JoystickMovedListener;
 import com.MobileAnarchy.Android.Widgets.Joystick.JoystickView;
-
 import android.os.Bundle;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -53,6 +52,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import edu.pki.CEEN.lab.bluebot.R;
 
+@SuppressLint("ClickableViewAccessibility")
 public class MainActivity extends Activity {
 
 	protected static final String TAG = "MainActivity";
@@ -83,6 +83,7 @@ public class MainActivity extends Activity {
 //	  super.onConfigurationChanged(newConfig);
 //	}
 	
+	@SuppressLint("ClickableViewAccessibility")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -287,7 +288,11 @@ public class MainActivity extends Activity {
 			public void run() {
 				boolean newData = false; // Assume first run it's true.
 				byte prevData[] = new byte[6];
+//				int heartBeat = 0;		// Variable will keep track and every so often will force a heartbeat.
 				while (true) {
+//					heartBeat++;
+//					if(heartBeat % 200 == 0)
+//						HeartBeat();
 					if (killBtControl == false) {
 						for (int i = 0; i < dataSet.length; i++)
 							if (dataSet[i] != prevData[i])
@@ -314,6 +319,8 @@ public class MainActivity extends Activity {
 												if (tmpCnt >= 200) {
 													Log.e(TAG,
 															"Timeout of BT communication occured. No ACK");
+													cStatus.setText("Disconnected");
+													killBtControl = true;
 													break;
 												}
 											}
@@ -336,6 +343,7 @@ public class MainActivity extends Activity {
 							{
 								outStream.write(0x00);
 								int tmpCnt = 0;
+								cStatus.setText("Disconnected");
 								while(inStream.read() != 0xAC) {
 									tmpCnt++;
 									if (tmpCnt >= 200) {
@@ -349,7 +357,7 @@ public class MainActivity extends Activity {
 							}
 						} catch (Exception e)
 						{
-							Log.d(TAG, "Received exception while trying to read/write BT.");
+							Log.e(TAG, "Received exception while trying to read/write BT.");
 						}
 
 						if (outStream != null) {
@@ -358,18 +366,45 @@ public class MainActivity extends Activity {
 								mSocket = null;
 							} catch (IOException e) {
 							}
-							Log.i(TAG, "Killing BTControl Thread.");
+							Log.w(TAG, "Killing BTControl Thread.");
 							return; // Kills the thread...
 						}
 					}
 				}
 			}
+
+//			private void HeartBeat() {
+//				// TODO Auto-generated method stub
+//				if(outStream == null || inStream == null || mSocket == null)
+//				{
+//					killBtControl = true;
+//					cStatus.setText("Disconnected");
+//					return;
+//				}
+//				
+//				try{					//Send 0xBE for Heartbeat.
+//					outStream.write(0x00);
+//						int tmpCnt = 0;
+//						while(inStream.read() != 0xAC) {
+//							tmpCnt++;
+//							if (tmpCnt >= 200) {
+//								Log.e(TAG,
+//										"Timeout of BT communication occured. No ACK");
+//								break;
+//							}
+//						}
+//						
+//						Log.d(TAG, "All stop sent.");
+//				} catch (Exception e) {
+//					Log.d(TAG, "Received exception while trying to read/write BT.");
+//				}
+//			}
 		};
 		// Create thread, but do not start it here.
 		// Will prevent multiple threads from being
 		// created and wasted resources.
 
-		// Set buttons clickable, not done when onTouchListener is used.
+		// Set buttons click-able, not done when onTouchListener is used.
 		xBtn.setClickable(true);
 		r1Btn.setClickable(true);
 		r2Btn.setClickable(true);
@@ -394,8 +429,8 @@ public class MainActivity extends Activity {
 		
 		while(mAdapter == null || mAdapter.isEnabled() == false)
 			;
-		
-		btControl = new Thread(btControlRunnable, "BTControl");
+		if(btControl == null)
+			btControl = new Thread(btControlRunnable, "BTControl");
 		if(macAddr == null)
 		{
 			Intent deviceIntent = new Intent(this, DeviceListActivity.class);
