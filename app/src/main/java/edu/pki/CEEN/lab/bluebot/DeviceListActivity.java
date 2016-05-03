@@ -34,6 +34,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 /**
  * This Activity appears as a dialog. It lists any paired devices and
@@ -160,7 +161,11 @@ public class DeviceListActivity extends Activity {
 
             // Get the device MAC address, which is the last 17 chars in the View
             String info = ((TextView) v).getText().toString();
-            String address = info.substring(info.length() - 17);
+            String address = info.split("\n")[1];
+            if(address == null){
+                Toast.makeText(v.getContext(), getString(R.string.invalidAddress), Toast.LENGTH_SHORT).show();
+                return;
+            }
 
             // Create the result Intent and include the MAC address
             Intent intent = new Intent();
