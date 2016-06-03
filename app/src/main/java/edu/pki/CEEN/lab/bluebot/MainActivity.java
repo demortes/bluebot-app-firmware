@@ -29,19 +29,13 @@
  */
 package edu.pki.CEEN.lab.bluebot;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.UUID;
-import com.MobileAnarchy.Android.Widgets.Joystick.JoystickMovedListener;
-import com.MobileAnarchy.Android.Widgets.Joystick.JoystickView;
-import android.os.Bundle;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -50,328 +44,333 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
-import edu.pki.CEEN.lab.bluebot.R;
+
+import com.MobileAnarchy.Android.Widgets.Joystick.JoystickMovedListener;
+import com.MobileAnarchy.Android.Widgets.Joystick.JoystickView;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.UUID;
 
 @SuppressLint("ClickableViewAccessibility")
 public class MainActivity extends Activity {
 
-	protected static final String TAG = "MainActivity";
-	protected static final boolean DEBUG = false;
-	private TextView cStatus;
-	private BluetoothAdapter mAdapter;
-	private BluetoothSocket mSocket;
-	private BluetoothDevice mDevice;
-	private OutputStream outStream;
-	private String macAddr = null; //"20:13:01:22:12:07";
-	private Button xBtn, l1Btn, l2Btn, r1Btn, r2Btn, circleBtn, squareBtn,
-			triangleBtn;
-	private byte dataSet[];
-	private Thread btControl;
-	private boolean killBtControl = false;
-	private InputStream inStream;
-	JoystickView joyStickL;
-	TextView xView;
-	TextView yView;
-	private JoystickView joyStickR;
-	private static final int REQUEST_ENABLE_BT = 0;
-	
-	Runnable btControlRunnable;
+    protected static final String TAG = "MainActivity";
+    protected static final boolean DEBUG = false;
+    private TextView cStatus;
+    private BluetoothAdapter mAdapter;
+    private BluetoothSocket mSocket;
+    private BluetoothDevice mDevice;
+    private OutputStream outStream;
+    private String macAddr = null; //"20:13:01:22:12:07";
+    private Button xBtn, l1Btn, l2Btn, r1Btn, r2Btn, circleBtn, squareBtn,
+            triangleBtn;
+    private byte dataSet[];
+    private Thread btControl;
+    private boolean killBtControl = false;
+    private InputStream inStream;
+    JoystickView joyStickL;
+    TextView xView;
+    TextView yView;
+    private JoystickView joyStickR;
+    private static final int REQUEST_ENABLE_BT = 0;
+
+    Runnable btControlRunnable;
 
 //	@Override
 //	public void onConfigurationChanged(Configuration newConfig) {
 //	  // ignore orientation/keyboard change
 //	  super.onConfigurationChanged(newConfig);
 //	}
-	
-	@SuppressLint("ClickableViewAccessibility")
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.joystick);
+
+    @SuppressLint("ClickableViewAccessibility")
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.joystick);
 
 
-		dataSet = new byte[6];
-		dataSet[0] = (byte) 0xCA;
+        dataSet = new byte[6];
+        dataSet[0] = (byte) 0xCA;
 
-		xBtn = (Button) findViewById(R.id.xBtn);
-		l1Btn = (Button) findViewById(R.id.L1Btn);
-		l2Btn = (Button) findViewById(R.id.L2Btn);
-		r1Btn = (Button) findViewById(R.id.r1Btn);
-		r2Btn = (Button) findViewById(R.id.R2Btn);
-		squareBtn = (Button) findViewById(R.id.squareBtn);
-		circleBtn = (Button) findViewById(R.id.circleBtn);
-		triangleBtn = (Button) findViewById(R.id.triangleBtn);
+        xBtn = (Button) findViewById(R.id.xBtn);
+        l1Btn = (Button) findViewById(R.id.L1Btn);
+        l2Btn = (Button) findViewById(R.id.L2Btn);
+        r1Btn = (Button) findViewById(R.id.r1Btn);
+        r2Btn = (Button) findViewById(R.id.R2Btn);
+        squareBtn = (Button) findViewById(R.id.squareBtn);
+        circleBtn = (Button) findViewById(R.id.circleBtn);
+        triangleBtn = (Button) findViewById(R.id.triangleBtn);
 
-		joyStickL = (JoystickView) findViewById(R.id.JoystickViewL);
-		joyStickR = (JoystickView) findViewById(R.id.joystickViewR);
+        joyStickL = (JoystickView) findViewById(R.id.JoystickViewL);
+        joyStickR = (JoystickView) findViewById(R.id.joystickViewR);
 
-		cStatus = (TextView) findViewById(R.id.ConnectionStatus);
-		mAdapter = BluetoothAdapter.getDefaultAdapter();
+        cStatus = (TextView) findViewById(R.id.ConnectionStatus);
+        mAdapter = BluetoothAdapter.getDefaultAdapter();
 
-		xBtn.setOnTouchListener(new View.OnTouchListener() {
-			@Override
-			public boolean onTouch(View v, MotionEvent event) {
-				if (event.getAction() == MotionEvent.ACTION_DOWN) {
-					dataSet[1] |= (byte) (1 << 6);
-				} else if (event.getAction() == MotionEvent.ACTION_UP) {
-					dataSet[1] &= ~(1 << 6);
-				}
-				if (DEBUG)
-					Log.d(TAG, String.format("Button Byte: 0x%02x", dataSet[1]));
-				return false;
-			}
-		});
+        xBtn.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    dataSet[1] |= (byte) (1 << 6);
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    dataSet[1] &= ~(1 << 6);
+                }
+                if (DEBUG)
+                    Log.d(TAG, String.format("Button Byte: 0x%02x", dataSet[1]));
+                return false;
+            }
+        });
 
-		circleBtn.setOnTouchListener(new View.OnTouchListener() {
-			@Override
-			public boolean onTouch(View v, MotionEvent event) {
-				if (event.getAction() == MotionEvent.ACTION_DOWN) {
-					dataSet[1] |= (byte) (1 << 5);
-				} else if (event.getAction() == MotionEvent.ACTION_UP) {
-					dataSet[1] &= ~(1 << 5);
-				}
-				if (DEBUG)
-					Log.d(TAG, String.format("Button Byte: 0x%02x", dataSet[1]));
-				return false;
-			}
-		});
+        circleBtn.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    dataSet[1] |= (byte) (1 << 5);
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    dataSet[1] &= ~(1 << 5);
+                }
+                if (DEBUG)
+                    Log.d(TAG, String.format("Button Byte: 0x%02x", dataSet[1]));
+                return false;
+            }
+        });
 
-		squareBtn.setOnTouchListener(new View.OnTouchListener() {
-			@Override
-			public boolean onTouch(View v, MotionEvent event) {
-				if (event.getAction() == MotionEvent.ACTION_DOWN) {
-					dataSet[1] |= (byte) (1 << 7);
-				} else if (event.getAction() == MotionEvent.ACTION_UP) {
-					dataSet[1] &= ~(1 << 7);
-				}
-				if (DEBUG)
-					Log.d(TAG, String.format("Button Byte: 0x%02x", dataSet[1]));
-				return false;
-			}
-		});
+        squareBtn.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    dataSet[1] |= (byte) (1 << 7);
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    dataSet[1] &= ~(1 << 7);
+                }
+                if (DEBUG)
+                    Log.d(TAG, String.format("Button Byte: 0x%02x", dataSet[1]));
+                return false;
+            }
+        });
 
-		triangleBtn.setOnTouchListener(new View.OnTouchListener() {
-			@Override
-			public boolean onTouch(View v, MotionEvent event) {
-				if (event.getAction() == MotionEvent.ACTION_DOWN) {
-					dataSet[1] |= (byte) (1 << 4);
-				} else if (event.getAction() == MotionEvent.ACTION_UP) {
-					dataSet[1] &= ~(1 << 4);
-				}
-				if (DEBUG)
-					Log.d(TAG, String.format("Button Byte: 0x%02x", dataSet[1]));
-				return false;
-			}
-		});
-		r1Btn.setOnTouchListener(new View.OnTouchListener() {
-			@Override
-			public boolean onTouch(View v, MotionEvent event) {
-				if (event.getAction() == MotionEvent.ACTION_DOWN) {
-					dataSet[1] |= (byte) (1 << 3);
-				} else if (event.getAction() == MotionEvent.ACTION_UP) {
-					dataSet[1] &= ~(1 << 3);
-				}
-				if (DEBUG)
-					Log.d(TAG, String.format("Button Byte: 0x%02x", dataSet[1]));
-				return false;
-			}
-		});
+        triangleBtn.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    dataSet[1] |= (byte) (1 << 4);
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    dataSet[1] &= ~(1 << 4);
+                }
+                if (DEBUG)
+                    Log.d(TAG, String.format("Button Byte: 0x%02x", dataSet[1]));
+                return false;
+            }
+        });
+        r1Btn.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    dataSet[1] |= (byte) (1 << 3);
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    dataSet[1] &= ~(1 << 3);
+                }
+                if (DEBUG)
+                    Log.d(TAG, String.format("Button Byte: 0x%02x", dataSet[1]));
+                return false;
+            }
+        });
 
-		l1Btn.setOnTouchListener(new View.OnTouchListener() {
-			@Override
-			public boolean onTouch(View v, MotionEvent event) {
-				if (event.getAction() == MotionEvent.ACTION_DOWN) {
-					dataSet[1] |= (byte) (1 << 2);
-				} else if (event.getAction() == MotionEvent.ACTION_UP) {
-					dataSet[1] &= ~(1 << 2);
-				}
-				if (DEBUG)
-					Log.d(TAG, String.format("Button Byte: 0x%02x", dataSet[1]));
-				return false;
-			}
-		});
-		r2Btn.setOnTouchListener(new View.OnTouchListener() {
-			@Override
-			public boolean onTouch(View v, MotionEvent event) {
-				if (event.getAction() == MotionEvent.ACTION_DOWN) {
-					dataSet[1] |= (byte) (1 << 1);
-				} else if (event.getAction() == MotionEvent.ACTION_UP) {
-					dataSet[1] &= ~(1 << 1);
-				}
-				if (DEBUG)
-					Log.d(TAG, String.format("Button Byte: 0x%02x", dataSet[1]));
-				return false;
-			}
-		});
-		l2Btn.setOnTouchListener(new View.OnTouchListener() {
-			@Override
-			public boolean onTouch(View v, MotionEvent event) {
-				if (event.getAction() == MotionEvent.ACTION_DOWN) {
-					dataSet[1] |= (byte) (1 << 0);
-				} else if (event.getAction() == MotionEvent.ACTION_UP) {
-					dataSet[1] &= ~(1 << 0);
-				}
-				if (DEBUG)
-					Log.d(TAG, String.format("Button Byte: 0x%02x", dataSet[1]));
-				return false;
-			}
-		});
+        l1Btn.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    dataSet[1] |= (byte) (1 << 2);
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    dataSet[1] &= ~(1 << 2);
+                }
+                if (DEBUG)
+                    Log.d(TAG, String.format("Button Byte: 0x%02x", dataSet[1]));
+                return false;
+            }
+        });
+        r2Btn.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    dataSet[1] |= (byte) (1 << 1);
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    dataSet[1] &= ~(1 << 1);
+                }
+                if (DEBUG)
+                    Log.d(TAG, String.format("Button Byte: 0x%02x", dataSet[1]));
+                return false;
+            }
+        });
+        l2Btn.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    dataSet[1] |= (byte) (1 << 0);
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    dataSet[1] &= ~(1 << 0);
+                }
+                if (DEBUG)
+                    Log.d(TAG, String.format("Button Byte: 0x%02x", dataSet[1]));
+                return false;
+            }
+        });
 
-		joyStickL.setOnJoystickMovedListener(new JoystickMovedListener() {
+        joyStickL.setOnJoystickMovedListener(new JoystickMovedListener() {
 
-			@Override
-			public void OnMoved(int x, int y) {
+            @Override
+            public void OnMoved(int x, int y) {
 
-				dataSet[4] = (byte) -y;
-				dataSet[5] = (byte) x;
-				
-				((TextView) findViewById(R.id.LX)).setText(String.format("%d", dataSet[5]));
-				((TextView) findViewById(R.id.LY)).setText(String.format("%d", dataSet[4]));
-			}
+                dataSet[4] = (byte) -y;
+                dataSet[5] = (byte) x;
 
-			@Override
-			public void OnReleased() {
-				dataSet[5] = dataSet[4] = (byte) 0x00;
-				
-				((TextView) findViewById(R.id.LX)).setText(String.format("%d", dataSet[5]));
-				((TextView) findViewById(R.id.LY)).setText(String.format("%d", dataSet[4]));
-			}
+                ((TextView) findViewById(R.id.LX)).setText(String.format("%d", dataSet[5]));
+                ((TextView) findViewById(R.id.LY)).setText(String.format("%d", dataSet[4]));
+            }
 
-			@Override
-			public void OnReturnedToCenter() {
-				dataSet[5] = dataSet[4] = (byte) 0x00;
-				
-				((TextView) findViewById(R.id.LX)).setText(String.format("%d", dataSet[5]));
-				((TextView) findViewById(R.id.LY)).setText(String.format("%d", dataSet[4]));
-			}
-		});
-		
-		joyStickR.setOnJoystickMovedListener(new JoystickMovedListener() {
+            @Override
+            public void OnReleased() {
+                dataSet[5] = dataSet[4] = (byte) 0x00;
 
-			@Override
-			public void OnMoved(int x, int y) {
+                ((TextView) findViewById(R.id.LX)).setText(String.format("%d", dataSet[5]));
+                ((TextView) findViewById(R.id.LY)).setText(String.format("%d", dataSet[4]));
+            }
 
-				dataSet[2] = (byte) -y;
-				dataSet[3] = (byte) x;
-				
-				((TextView) findViewById(R.id.RX)).setText(String.format("%d", dataSet[3]));
-				((TextView) findViewById(R.id.RY)).setText(String.format("%d", dataSet[2]));
-			}
+            @Override
+            public void OnReturnedToCenter() {
+                dataSet[5] = dataSet[4] = (byte) 0x00;
 
-			@Override
-			public void OnReleased() {
-				dataSet[3] = dataSet[2] = (byte) 0x00;
-				
-				((TextView) findViewById(R.id.RX)).setText(String.format("%d", dataSet[3]));
-				((TextView) findViewById(R.id.RY)).setText(String.format("%d", dataSet[2]));
+                ((TextView) findViewById(R.id.LX)).setText(String.format("%d", dataSet[5]));
+                ((TextView) findViewById(R.id.LY)).setText(String.format("%d", dataSet[4]));
+            }
+        });
 
-			}
+        joyStickR.setOnJoystickMovedListener(new JoystickMovedListener() {
 
-			@Override
-			public void OnReturnedToCenter() {
-				dataSet[3] = dataSet[2] = (byte) 0x00;
-				
-				((TextView) findViewById(R.id.RX)).setText(String.format("%d", dataSet[3]));
-				((TextView) findViewById(R.id.RY)).setText(String.format("%d", dataSet[2]));
+            @Override
+            public void OnMoved(int x, int y) {
 
-			}
-		});
-		
-		
-		// Change resolution
-		joyStickL.setMovementRange(127);
-		joyStickR.setMovementRange(127);
+                dataSet[2] = (byte) -y;
+                dataSet[3] = (byte) x;
 
-		// Populate Runnable for thread creation.
-		btControlRunnable = new Runnable() {
-			@Override
-			public void run() {
-				boolean newData = false; // Assume first run it's true.
-				byte prevData[] = new byte[6];
+                ((TextView) findViewById(R.id.RX)).setText(String.format("%d", dataSet[3]));
+                ((TextView) findViewById(R.id.RY)).setText(String.format("%d", dataSet[2]));
+            }
+
+            @Override
+            public void OnReleased() {
+                dataSet[3] = dataSet[2] = (byte) 0x00;
+
+                ((TextView) findViewById(R.id.RX)).setText(String.format("%d", dataSet[3]));
+                ((TextView) findViewById(R.id.RY)).setText(String.format("%d", dataSet[2]));
+
+            }
+
+            @Override
+            public void OnReturnedToCenter() {
+                dataSet[3] = dataSet[2] = (byte) 0x00;
+
+                ((TextView) findViewById(R.id.RX)).setText(String.format("%d", dataSet[3]));
+                ((TextView) findViewById(R.id.RY)).setText(String.format("%d", dataSet[2]));
+
+            }
+        });
+
+
+        // Change resolution
+        joyStickL.setMovementRange(127);
+        joyStickR.setMovementRange(127);
+
+        // Populate Runnable for thread creation.
+        btControlRunnable = new Runnable() {
+            @Override
+            public void run() {
+                boolean newData = false; // Assume first run it's true.
+                byte prevData[] = new byte[6];
 //				int heartBeat = 0;		// Variable will keep track and every so often will force a heartbeat.
-				while (true) {
+                while (true) {
 //					heartBeat++;
 //					if(heartBeat % 200 == 0)
 //						HeartBeat();
-					if (killBtControl == false) {
-						for (int i = 0; i < dataSet.length; i++)
-							if (dataSet[i] != prevData[i])
-								newData = true;
-							if (newData) {
-								if (DEBUG) {
-									Log.d(TAG,
-											"New data... trying to transmit.");
-									Log.d(TAG,
-											String.format(
-													"0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x",
-													dataSet[0], dataSet[1],
-													dataSet[2], dataSet[3],
-													dataSet[4], dataSet[5]));
-								}
-								try {
-									if (outStream != null) {
-										int tmpCnt = 0;
-										for (int j = 0; j < dataSet.length; j++) {
-											outStream
-													.write(prevData[j] = dataSet[j]);
-											while (inStream.read() != 0xAC) {
-												tmpCnt++;
-												if (tmpCnt >= 200) {
-													Log.e(TAG,
-															"Timeout of BT communication occured. No ACK");
-													cStatus.setText("Disconnected");
-													killBtControl = true;
-													break;
-												}
-											}
-											tmpCnt = 0;
-										}
-									}
-									Thread.sleep(10);
-								} catch (IOException e) {
-									Log.d(TAG, "ERROR within BTControl Thread.");
-									Log.d(TAG, "Exception: " + e.toString());
-								} catch (Exception e) {
-									Log.e(TAG, "Generic exception caught in BT thread");
-									e.printStackTrace();
-								}
-								newData = false;
-							}
-					} else {
-						try{					// Stop all movement.
-							for(int k = 0; k < 6;k++)
-							{
-								outStream.write(0x00);
-								int tmpCnt = 0;
-								cStatus.setText("Disconnected");
-								while(inStream.read() != 0xAC) {
-									tmpCnt++;
-									if (tmpCnt >= 200) {
-										Log.e(TAG,
-												"Timeout of BT communication occured. No ACK");
-										break;
-									}
-								}
-								
-								Log.d(TAG, "All stop sent.");
-							}
-						} catch (Exception e)
-						{
-							Log.e(TAG, "Received exception while trying to read/write BT.");
-						}
+                    if (!killBtControl) {
+                        for (int i = 0; i < dataSet.length; i++)
+                            if (dataSet[i] != prevData[i])
+                                newData = true;
+                        if (newData) {
+                            if (DEBUG) {
+                                Log.d(TAG,
+                                        "New data... trying to transmit.");
+                                Log.d(TAG,
+                                        String.format(
+                                                "0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x",
+                                                dataSet[0], dataSet[1],
+                                                dataSet[2], dataSet[3],
+                                                dataSet[4], dataSet[5]));
+                            }
+                            try {
+                                if (outStream != null) {
+                                    int tmpCnt = 0;
+                                    for (int j = 0; j < dataSet.length; j++) {
+                                        outStream
+                                                .write(prevData[j] = dataSet[j]);
+                                        while (inStream.read() != 0xAC) {
+                                            tmpCnt++;
+                                            if (tmpCnt >= 200) {
+                                                Log.e(TAG,
+                                                        "Timeout of BT communication occured. No ACK");
+                                                cStatus.setText("Disconnected");
+                                                killBtControl = true;
+                                                break;
+                                            }
+                                        }
+                                        tmpCnt = 0;
+                                    }
+                                }
+                                Thread.sleep(10);
+                            } catch (IOException e) {
+                                Log.d(TAG, "ERROR within BTControl Thread.");
+                                Log.d(TAG, "Exception: " + e.toString());
+                            } catch (Exception e) {
+                                Log.e(TAG, "Generic exception caught in BT thread");
+                                e.printStackTrace();
+                            }
+                            newData = false;
+                        }
+                    } else {
+                        try {                    // Stop all movement.
+                            for (int k = 0; k < 6; k++) {
+                                outStream.write(0x00);
+                                int tmpCnt = 0;
+                                cStatus.setText("Disconnected");
+                                while (inStream.read() != 0xAC) {
+                                    tmpCnt++;
+                                    if (tmpCnt >= 200) {
+                                        Log.e(TAG,
+                                                "Timeout of BT communication occured. No ACK");
+                                        break;
+                                    }
+                                }
 
-						if (outStream != null) {
-							try {
-								mSocket.close();
-								mSocket = null;
-							} catch (IOException e) {
-							}
-							Log.w(TAG, "Killing BTControl Thread.");
-							return; // Kills the thread...
-						}
-					}
-				}
-			}
+                                Log.d(TAG, "All stop sent.");
+                            }
+                        } catch (Exception e) {
+                            Log.e(TAG, "Received exception while trying to read/write BT.");
+                        }
+
+                        if (outStream != null) {
+                            try {
+                                mSocket.close();
+                                mSocket = null;
+                            } catch (IOException e) {
+                            }
+                            Log.w(TAG, "Killing BTControl Thread.");
+                            return; // Kills the thread...
+                        }
+                    }
+                }
+            }
 
 //			private void HeartBeat() {
 //				// TODO Auto-generated method stub
@@ -399,156 +398,147 @@ public class MainActivity extends Activity {
 //					Log.d(TAG, "Received exception while trying to read/write BT.");
 //				}
 //			}
-		};
-		// Create thread, but do not start it here.
-		// Will prevent multiple threads from being
-		// created and wasted resources.
+        };
+        // Create thread, but do not start it here.
+        // Will prevent multiple threads from being
+        // created and wasted resources.
 
-		// Set buttons click-able, not done when onTouchListener is used.
-		xBtn.setClickable(true);
-		r1Btn.setClickable(true);
-		r2Btn.setClickable(true);
-		l1Btn.setClickable(true);
-		l2Btn.setClickable(true);
-		squareBtn.setClickable(true);
-		circleBtn.setClickable(true);
-		triangleBtn.setClickable(true);
-	}
+        // Set buttons click-able, not done when onTouchListener is used.
+        xBtn.setClickable(true);
+        r1Btn.setClickable(true);
+        r2Btn.setClickable(true);
+        l1Btn.setClickable(true);
+        l2Btn.setClickable(true);
+        squareBtn.setClickable(true);
+        circleBtn.setClickable(true);
+        triangleBtn.setClickable(true);
+    }
 
-	protected void onResume() {
-		super.onResume();
-		killBtControl = false;
-		if (mAdapter == null) {
-			Toast.makeText(getApplicationContext(), "Bluetooth not available.", Toast.LENGTH_LONG).show();
-		} else if (!mAdapter.isEnabled()) {
-			Intent enableBtIntent = new Intent(
-					BluetoothAdapter.ACTION_REQUEST_ENABLE);
-			startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-			//mAdapter.enable();
-		}
-		
-		while(mAdapter == null || mAdapter.isEnabled() == false)
-			;
-		if(btControl == null)
-			btControl = new Thread(btControlRunnable, "BTControl");
-		if(macAddr == null)
-		{
-			Intent deviceIntent = new Intent(this, DeviceListActivity.class);
-			startActivityForResult(deviceIntent, 1);
-		} else
-			connectBT();
+    protected void onResume() {
+        super.onResume();
+        killBtControl = false;
+        if (mAdapter == null) {
+            Toast.makeText(getApplicationContext(), "Bluetooth not available.", Toast.LENGTH_LONG).show();
+        } else if (!mAdapter.isEnabled()) {
+            Intent enableBtIntent = new Intent(
+                    BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+            //mAdapter.enable();
+        }
 
-		if (joyStickL.getUserCoordinateSystem() != JoystickView.COORDINATE_CARTESIAN)
-			joyStickL.setUserCoordinateSystem(JoystickView.COORDINATE_CARTESIAN);
-	}
+        while(mAdapter == null || !mAdapter.isEnabled())
+            ;
+        if (btControl == null)
+            btControl = new Thread(btControlRunnable, "BTControl");
+        if (macAddr == null) {
+            Intent deviceIntent = new Intent(this, DeviceListActivity.class);
+            startActivityForResult(deviceIntent, 1);
+        } else
+            connectBT();
 
-	protected void onPause() {
-		super.onPause();
-			cStatus.setText("Disconnected");
+        if (joyStickL.getUserCoordinateSystem() != JoystickView.COORDINATE_CARTESIAN)
+            joyStickL.setUserCoordinateSystem(JoystickView.COORDINATE_CARTESIAN);
+    }
 
-			// Stop the thread from wasting battery and keeping resources we
-			// don't need.
-		
-		killBtControl = true;
-	}
+    protected void onPause() {
+        super.onPause();
+        cStatus.setText("Disconnected");
 
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.menu, menu);
-		return true;
-	}
-	
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item)
-	{
-		switch(item.getItemId())
-		{
-			case R.id.action_settings:
-				Intent intent = new Intent(this, SettingsActivity.class);
-				startActivity(intent);
-				return true;
-			case R.id.about:
-				Intent intent1 = new Intent(this, AboutActivity.class);
-				startActivity(intent1);
-				return true;
-			default:
-				return super.onOptionsItemSelected(item);
-		}
-	}
+        // Stop the thread from wasting battery and keeping resources we
+        // don't need.
 
-	public void resetJoyData() {
-		dataSet[2] = 0;
-		dataSet[3] = 0;
-		dataSet[4] = 0;
-		dataSet[5] = 0;
+        killBtControl = true;
+    }
 
-	}
-	
-	protected void onActivityResult(int request, int result, Intent data)
-	{
-		if(request == 1)
-		{
-			if(result == RESULT_OK)
-			{
-				macAddr = data.getStringExtra("device_address");
-				connectBT();
-			}
-		}
-	}
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu, menu);
+        return true;
+    }
 
-	private void connectBT()
-	{
-		if (mSocket == null && macAddr != null) {
-			mDevice = mAdapter.getRemoteDevice(macAddr);
-			mAdapter.cancelDiscovery();
-			try {
-				mSocket = mDevice
-						.createInsecureRfcommSocketToServiceRecord(UUID
-								.fromString("00001101-0000-1000-8000-00805F9B34FB"));
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			
-			if (mSocket == null && macAddr != null) {
-				mDevice = mAdapter.getRemoteDevice(macAddr);
-				mAdapter.cancelDiscovery();
-				try {
-					mSocket = mDevice
-							.createInsecureRfcommSocketToServiceRecord(UUID
-									.fromString("00001101-0000-1000-8000-00805F9B34FB"));
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-	
-			try {
-				mSocket.connect();
-				outStream = mSocket.getOutputStream();
-				inStream = mSocket.getInputStream();
-				cStatus.setText("Connected");
-				btControl.start();
-			} catch (IOException e) {
-				// Connection failed at this point, close the socket and move on.
-				try {
-					mSocket.close();
-					cStatus.setText("Disconnected");
-				} catch (IOException e1) {
-				}
-			}
-		}
-	}
-	
-	public void onSaveInstanceState(Bundle savedInstanceState)
-	{
-		savedInstanceState.putString("macAddr", macAddr);
-		super.onSaveInstanceState(savedInstanceState);
-	}
-	
-	public void onRestoreInstanceState(Bundle savedInstanceState)
-	{
-		super.onRestoreInstanceState(savedInstanceState);
-		if (savedInstanceState != null)
-			macAddr = savedInstanceState.getString("macAddr");
-	}
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                Intent intent = new Intent(this, SettingsActivity.class);
+                startActivity(intent);
+                return true;
+            case R.id.about:
+                Intent intent1 = new Intent(this, AboutActivity.class);
+                startActivity(intent1);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    public void resetJoyData() {
+        dataSet[2] = 0;
+        dataSet[3] = 0;
+        dataSet[4] = 0;
+        dataSet[5] = 0;
+
+    }
+
+    protected void onActivityResult(int request, int result, Intent data) {
+        if (request == 1) {
+            if (result == RESULT_OK) {
+                macAddr = data.getStringExtra("device_address");
+                connectBT();
+            }
+        }
+    }
+
+    private void connectBT() {
+        if (mSocket == null && macAddr != null) {
+            mDevice = mAdapter.getRemoteDevice(macAddr);
+            mAdapter.cancelDiscovery();
+            try {
+                mSocket = mDevice
+                        .createInsecureRfcommSocketToServiceRecord(UUID
+                                .fromString("00001101-0000-1000-8000-00805F9B34FB"));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            if (mSocket == null && macAddr != null) {
+                mDevice = mAdapter.getRemoteDevice(macAddr);
+                mAdapter.cancelDiscovery();
+                try {
+                    mSocket = mDevice
+                            .createInsecureRfcommSocketToServiceRecord(UUID
+                                    .fromString("00001101-0000-1000-8000-00805F9B34FB"));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            try {
+                mSocket.connect();
+                outStream = mSocket.getOutputStream();
+                inStream = mSocket.getInputStream();
+                cStatus.setText("Connected");
+                btControl.start();
+            } catch (IOException e) {
+                // Connection failed at this point, close the socket and move on.
+                try {
+                    mSocket.close();
+                    cStatus.setText("Disconnected");
+                } catch (IOException e1) {
+                }
+            }
+        }
+    }
+
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        savedInstanceState.putString("macAddr", macAddr);
+        super.onSaveInstanceState(savedInstanceState);
+    }
+
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        if (savedInstanceState != null)
+            macAddr = savedInstanceState.getString("macAddr");
+    }
 }

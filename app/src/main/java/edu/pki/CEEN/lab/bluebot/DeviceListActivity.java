@@ -14,9 +14,18 @@ package edu.pki.CEEN.lab.bluebot;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Set;
+import java.util.UUID;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
@@ -36,6 +45,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.firebase.crash.FirebaseCrash;
+
 /**
  * This Activity appears as a dialog. It lists any paired devices and
  * devices detected in the area after discovery. When a device is chosen
@@ -45,7 +56,10 @@ import android.widget.Toast;
 public class DeviceListActivity extends Activity {
     // Debugging
     private static final String TAG = "DeviceListActivity";
-    private static final boolean D = true;
+    private static final boolean D = false;
+
+    private String sID = null;
+    private String INSTALLATION = "installation.id";
 
     // Return Intent extra
     public static String EXTRA_DEVICE_ADDRESS = "device_address";
@@ -130,6 +144,65 @@ public class DeviceListActivity extends Activity {
         this.unregisterReceiver(mReceiver);
     }
 
+    @Override
+    public void onResume(){
+        super.onResume();
+        if (sID == null) {
+            File installation = new File(this.getFilesDir(), INSTALLATION);
+            if(!installation.exists()){
+                try {
+                    if(!installation.createNewFile()){
+                        throw new Exception("Can not create file.");
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "Error creating installation file.");
+
+                }
+            }
+
+            try {
+                sID = getStringFromFile(installation.getAbsolutePath());
+            } catch (Exception e) {
+                Log.e(TAG, "Error reading installation file.");
+            }
+
+            if(sID == null || sID.length() < 1){
+                sID = UUID.randomUUID().toString();
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setMessage("This application is not a bluetooth application for consoles.\nIt will not work with consoles.").setTitle("PLEASE NOTE");
+                AlertDialog dialog = builder.create();
+                dialog.show();
+                try {
+                    FileOutputStream outputStream = new FileOutputStream(installation);
+                    outputStream.write(sID.getBytes());
+                } catch (IOException e) {
+                    Log.e(TAG, "Error writing to installation file.");
+                }
+
+            }
+        }
+    }
+
+
+    public static String convertStreamToString(InputStream is) throws Exception {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        StringBuilder sb = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            sb.append(line).append("\n");
+        }
+        reader.close();
+        return sb.toString();
+    }
+
+    public static String getStringFromFile (String filePath) throws Exception {
+        File fl = new File(filePath);
+        FileInputStream fin = new FileInputStream(fl);
+        String ret = convertStreamToString(fin);
+        //Make sure you close all streams.
+        fin.close();
+        return ret;
+    }
     /**
      * Start device discover with the BluetoothAdapter
      */
@@ -161,9 +234,16 @@ public class DeviceListActivity extends Activity {
 
             // Get the device MAC address, which is the last 17 chars in the View
             String info = ((TextView) v).getText().toString();
-            String address = info.split("\n")[1];
+            FirebaseCrash.log("Connecting to device: " + info);
+            String addressArray[] = info.split("\n");
+            String address = null;
+            if(addressArray.length >= 2) {
+                address = addressArray[1];
+            }
+
             if(address == null){
                 Toast.makeText(v.getContext(), getString(R.string.invalidAddress), Toast.LENGTH_SHORT).show();
+                FirebaseCrash.report(new Exception("Invalid bluetooth address selected."));
                 return;
             }
 
