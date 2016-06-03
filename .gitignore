@@ -34,3 +34,4 @@ build/
 
 #NDK
 obj/
+app/google-services.json
