@@ -243,7 +243,6 @@ public class DeviceListActivity extends Activity {
 
             if(address == null){
                 Toast.makeText(v.getContext(), getString(R.string.invalidAddress), Toast.LENGTH_SHORT).show();
-                FirebaseCrash.report(new Exception("Invalid bluetooth address selected."));
                 return;
             }
 

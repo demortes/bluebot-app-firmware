@@ -84,7 +84,6 @@ public class MainActivity extends Activity {
 //	  super.onConfigurationChanged(newConfig);
 //	}
 
-    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
