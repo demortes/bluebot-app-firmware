@@ -6,4 +6,4 @@ pipelines:
   default:
     - step:
         script: # Modify the commands below to build your repository.
-          - gradle assembleDebug
+          - gradlew assembleDebug
