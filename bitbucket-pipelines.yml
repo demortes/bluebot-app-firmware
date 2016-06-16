@@ -1,6 +1,6 @@
 # You can use a Docker image from Docker Hub or your own container
 # registry for your build environment.
-image: webratio/android-sdk
+image: rockerhieu/docker-gradle-android
 
 pipelines:
   default:
