@@ -4,5 +4,5 @@ pipelines:
   default:
     - step:
         script:
-          - echo y | android update sdk --filter tools,platform-tools,build-tools-24.0.0,android-24 --no-ui -a # Grab the Android Support Repo which isn't included in the container
+          - echo y | android update sdk --filter tools,platform-tools,build-tools-23.0.3,android-23,extra-android-support,addon-google_apis-google-23 --no-ui -a # Grab the Android Support Repo which isn't included in the container
           - ./gradlew assembleDebug
