@@ -1,7 +1,0 @@
-image: uber/android-build-environment:latest
-
-pipelines:
-  default:
-    - step:
-        script:
-          - ./gradlew assembleDebug
