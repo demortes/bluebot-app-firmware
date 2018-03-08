@@ -45,7 +45,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.firebase.crash.FirebaseCrash;
+import com.crashlytics.android.Crashlytics;
 
 /**
  * This Activity appears as a dialog. It lists any paired devices and
@@ -234,7 +234,7 @@ public class DeviceListActivity extends Activity {
 
             // Get the device MAC address, which is the last 17 chars in the View
             String info = ((TextView) v).getText().toString();
-            FirebaseCrash.log("Connecting to device: " + info);
+            Crashlytics.log("Connecting to device: " + info);
             String addressArray[] = info.split("\n");
             String address = null;
             if(addressArray.length >= 2) {
