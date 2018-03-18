@@ -30,6 +30,8 @@ pipelines:
           - yes | sdkmanager "extras;google;instantapps"
           - yes | sdkmanager --licenses
 
+          # Decode Google JSON
+          - echo $GoogleJsonB64 | base64 --decode --ignore-garbage > ./app/google-services.json
           # Build apk
           - chmod a+x ./gradlew
           - ./gradlew assembleDebug
